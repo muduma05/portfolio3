@@ -1,0 +1,2603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>정민주 | 포트폴리오 · Jeong Minju</title>
+  <meta name="description" content="고려대학교 불어불문학과·식품자원경제학과 정민주의 개인 포트폴리오 — 자기소개, 프로젝트, Neo4j 지식그래프 데이터 탐색" />
+  <meta property="og:title" content="정민주 | 포트폴리오" />
+  <meta property="og:description" content="언어와 경제, 그리고 데이터를 디자인으로 잇는 정민주의 포트폴리오입니다." />
+  <meta property="og:type" content="website" />
+
+  <!-- 웹 폰트: Plus Jakarta Sans (Display/UI), Fraunces (Editorial Accent), Noto Sans KR (국문), JetBrains Mono (데이터/ID) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Vis.js Network (Neo4j 그래프 시각화 CDN + 폴백 로더 지원) -->
+  <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js" defer></script>
+
+  <style>
+    /* ==========================================================================
+       1. 디자인 시스템 토큰 (레퍼런스 이미지 기반: 순백 60% · 아이스블루 30% · 코발트/체스트넛 10%)
+       ========================================================================== */
+    :root {
+      --bg-canvas: #ffffff;
+      --bg-frost: #f8fbff;
+      --bg-ice: #edf4fd;
+      --bg-ice-hover: #dfecfc;
+      --bg-chestnut-soft: #f9f2ed;
+
+      --border-hairline: #d6e2f1;
+      --border-subtle: #e9f0f8;
+
+      --ink-primary: #141b26;
+      --ink-secondary: #414e62;
+      --ink-muted: #66768c;
+
+      --accent-cobalt: #1d4ed8;
+      --accent-cobalt-hover: #1e40af;
+      --accent-chestnut: #8c461d;
+      --accent-teal: #0f766e;
+
+      --font-sans: "Plus Jakarta Sans", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+      --font-serif: "Fraunces", "Noto Sans KR", serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+
+      --shadow-card: 0 1px 2px rgba(20, 27, 38, 0.04), 0 8px 24px rgba(29, 78, 216, 0.04);
+      --shadow-modal: 0 24px 60px rgba(20, 27, 38, 0.16);
+
+      --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+      --nav-height: 64px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: calc(var(--nav-height) + 20px);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--ink-primary);
+      background-color: var(--bg-canvas);
+      -webkit-font-smoothing: antialiased;
+      word-break: keep-all;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button, input {
+      font-family: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent-cobalt);
+      outline-offset: 2px;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ==========================================================================
+       2. 상단 고정 내비게이션 바
+       ========================================================================== */
+    .site-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--nav-height);
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand-home {
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink-primary);
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: color 180ms var(--ease-settle);
+    }
+
+    .brand-home:hover {
+      color: var(--accent-cobalt);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-shrink: 0;
+    }
+
+    .nav-link {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      font-size: 0.925rem;
+      font-weight: 500;
+      color: var(--ink-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: color 180ms var(--ease-settle);
+    }
+
+    .nav-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 6px;
+      height: 2px;
+      background-color: var(--accent-cobalt);
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 180ms var(--ease-settle);
+    }
+
+    .nav-link:hover,
+    .nav-link.is-active {
+      color: var(--ink-primary);
+    }
+
+    .nav-link.is-active {
+      font-weight: 600;
+      color: var(--accent-cobalt);
+    }
+
+    .nav-link:hover::after,
+    .nav-link.is-active::after {
+      transform: scaleX(1);
+    }
+
+    /* ==========================================================================
+       3. 공통 레이아웃 & 섹션 리듬
+       ========================================================================== */
+    .main-wrap {
+      padding-top: var(--nav-height);
+    }
+
+    .section-block {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 72px 24px;
+    }
+
+    .section-divider {
+      border: 0;
+      border-top: 1px solid var(--border-subtle);
+      margin: 0;
+    }
+
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .section-kicker {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-chestnut);
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: clamp(1.6rem, 2.5vw, 2.1rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.25;
+      color: var(--ink-primary);
+    }
+
+    .section-subtitle {
+      margin: 8px 0 0;
+      font-size: 0.98rem;
+      color: var(--ink-secondary);
+      max-width: 65ch;
+    }
+
+    /* 버튼 시스템 */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background-color 180ms var(--ease-settle), border-color 180ms var(--ease-settle), color 180ms var(--ease-settle), transform 180ms var(--ease-settle);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-cobalt);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-cobalt-hover);
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-ice);
+      color: var(--ink-primary);
+      border-color: var(--border-hairline);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--bg-ice-hover);
+    }
+
+    .btn-ghost {
+      background-color: transparent;
+      color: var(--ink-secondary);
+      border-color: var(--border-hairline);
+    }
+
+    .btn-ghost:hover {
+      color: var(--ink-primary);
+      background-color: var(--bg-frost);
+    }
+
+    /* ==========================================================================
+       4. ① 자기소개 섹션 (#about)
+       ========================================================================== */
+    .about-section {
+      padding-top: 56px;
+      padding-bottom: 72px;
+    }
+
+    .hero-split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
+      gap: 48px;
+      align-items: stretch;
+    }
+
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8px 0;
+    }
+
+    .hero-kicker {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--accent-chestnut);
+      margin-bottom: 16px;
+    }
+
+    .hero-title {
+      margin: 0 0 20px;
+      font-size: clamp(2rem, 3.6vw, 3.1rem);
+      font-weight: 700;
+      line-height: 1.22;
+      letter-spacing: -0.03em;
+      color: var(--ink-primary);
+      text-wrap: balance;
+    }
+
+    .hero-title .editorial-italic {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      color: var(--accent-cobalt);
+    }
+
+    .hero-lead {
+      margin: 0 0 28px;
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: var(--ink-secondary);
+      max-width: 60ch;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-media-frame {
+      background-color: var(--bg-ice);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .hero-image-box {
+      position: relative;
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 300px;
+      border-radius: var(--radius-md);
+      background-color: #ffffff;
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-image-box img {
+      width: 100%;
+      height: 100%;
+      max-height: 410px;
+      object-fit: cover;
+      object-position: center 22%;
+      display: block;
+    }
+
+    .hero-image-fallback {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 40px 24px;
+      text-align: center;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(145deg, #ffffff 0%, var(--bg-ice) 100%);
+    }
+
+    .hero-image-fallback.is-visible {
+      display: flex;
+    }
+
+    .fallback-monogram {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--bg-ice);
+      border: 1px solid var(--border-hairline);
+      color: var(--accent-cobalt);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      font-weight: 600;
+    }
+
+    .hero-media-caption {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.84rem;
+      color: var(--ink-secondary);
+      padding: 2px 4px;
+    }
+
+    .hero-media-motto {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+    }
+
+    /* 4열 핵심 요약 스트립 (Hero 하단 전체 너비) */
+    .summary-strip {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      background-color: var(--bg-frost);
+      overflow: hidden;
+    }
+
+    .summary-cell {
+      padding: 20px 22px;
+      border-right: 1px solid var(--border-hairline);
+    }
+
+    .summary-cell:last-child {
+      border-right: none;
+    }
+
+    .summary-label {
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      margin-bottom: 6px;
+    }
+
+    .summary-value {
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: var(--ink-primary);
+    }
+
+    /* 2열 학력/관심사 & 연락처 그리드 */
+    .about-details-grid {
+      margin-top: 44px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 32px;
+      align-items: start;
+    }
+
+    .panel-card {
+      background-color: #ffffff;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .panel-heading {
+      margin: 0 0 20px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--ink-primary);
+    }
+
+    /* 타임라인 리스트 (굵은 왼쪽 선 금지 -> 깔끔한 가로 헤어라인 구분) */
+    .timeline-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .timeline-item {
+      padding: 16px 0;
+      border-top: 1px solid var(--border-subtle);
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
+      gap: 16px;
+      align-items: baseline;
+    }
+
+    .timeline-item:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .timeline-item:last-child {
+      padding-bottom: 0;
+    }
+
+    .timeline-period {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+    }
+
+    .timeline-title {
+      font-weight: 600;
+      font-size: 0.98rem;
+      color: var(--ink-primary);
+      margin-bottom: 4px;
+    }
+
+    .timeline-desc {
+      font-size: 0.9rem;
+      color: var(--ink-secondary);
+      margin: 0;
+    }
+
+    /* 키-밸류 프로필 테이블 */
+    .profile-kv-grid {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-hairline);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 20px;
+    }
+
+    .kv-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .kv-key {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+    }
+
+    .kv-val {
+      font-size: 0.93rem;
+      font-weight: 600;
+      color: var(--ink-primary);
+    }
+
+    /* 연락처 패널 */
+    .contact-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      background-color: var(--bg-frost);
+      border: 1px solid var(--border-subtle);
+      transition: background-color 180ms var(--ease-settle), border-color 180ms var(--ease-settle);
+    }
+
+    .contact-row:hover {
+      background-color: var(--bg-ice);
+      border-color: var(--border-hairline);
+    }
+
+    .contact-info {
+      min-width: 0;
+    }
+
+    .contact-type {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      margin-bottom: 2px;
+    }
+
+    .contact-value {
+      font-size: 0.94rem;
+      font-weight: 600;
+      color: var(--ink-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .contact-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .mini-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border-hairline);
+      background-color: #ffffff;
+      color: var(--ink-primary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 160ms var(--ease-settle), color 160ms var(--ease-settle), border-color 160ms var(--ease-settle);
+    }
+
+    .mini-btn:hover {
+      background-color: var(--accent-cobalt);
+      border-color: var(--accent-cobalt);
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       5. ② 프로젝트 섹션 (#projects)
+       ========================================================================== */
+    .filter-segmented {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      background-color: var(--bg-ice);
+      border: 1px solid var(--border-hairline);
+      border-radius: 10px;
+    }
+
+    .filter-tab {
+      min-height: 36px;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--ink-secondary);
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 160ms var(--ease-settle), color 160ms var(--ease-settle), box-shadow 160ms var(--ease-settle);
+    }
+
+    .filter-tab:hover {
+      color: var(--ink-primary);
+    }
+
+    .filter-tab.is-active {
+      background-color: #ffffff;
+      color: var(--accent-cobalt);
+      box-shadow: 0 1px 3px rgba(20, 27, 38, 0.08);
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .project-card {
+      background-color: #ffffff;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: var(--shadow-card);
+      transition: transform 200ms var(--ease-settle), border-color 200ms var(--ease-settle);
+    }
+
+    .project-card:hover {
+      transform: translateY(-2px);
+      border-color: #b3c9e8;
+    }
+
+    .project-meta {
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .project-title {
+      margin: 0 0 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.35;
+      color: var(--ink-primary);
+    }
+
+    .project-summary {
+      margin: 0;
+      font-size: 0.94rem;
+      line-height: 1.68;
+      color: var(--ink-secondary);
+    }
+
+    .project-footer {
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .project-stack {
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+    }
+
+    .project-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       6. ③ 데이터 탐색 섹션 (#explorer - Neo4j 그래프 시각화)
+       ========================================================================== */
+    .explorer-surface {
+      background-color: var(--bg-frost);
+      border-top: 1px solid var(--border-hairline);
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .explorer-toolbar {
+      background-color: #ffffff;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .search-box-wrap {
+      position: relative;
+      flex: 1 1 280px;
+      max-width: 420px;
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 36px 8px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-hairline);
+      background-color: var(--bg-frost);
+      color: var(--ink-primary);
+      font-size: 0.9rem;
+      transition: border-color 160ms var(--ease-settle), background-color 160ms var(--ease-settle);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-cobalt);
+      background-color: #ffffff;
+    }
+
+    .search-clear-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: var(--ink-muted);
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .search-clear-btn.is-visible {
+      display: inline-flex;
+    }
+
+    .search-results-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      max-height: 260px;
+      overflow-y: auto;
+      background: #ffffff;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-modal);
+      z-index: 40;
+      display: none;
+    }
+
+    .search-results-dropdown.is-open {
+      display: block;
+    }
+
+    .search-result-item {
+      width: 100%;
+      text-align: left;
+      border: none;
+      border-bottom: 1px solid var(--border-subtle);
+      background: #ffffff;
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: var(--ink-primary);
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-result-item:hover {
+      background-color: var(--bg-ice);
+    }
+
+    .search-result-meta {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      white-space: nowrap;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .context-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
+      color: var(--ink-secondary);
+      cursor: pointer;
+      user-select: none;
+      padding: 4px 6px;
+    }
+
+    .context-toggle input {
+      accent-color: var(--accent-cobalt);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .explorer-workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.9fr) minmax(300px, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .graph-stage {
+      position: relative;
+      background-color: #ffffff;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .graph-legend-bar {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      background-color: var(--bg-frost);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.8rem;
+      color: var(--ink-secondary);
+    }
+
+    .legend-items {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    #neo4j-network {
+      width: 100%;
+      height: 536px;
+      background-color: #ffffff;
+      overflow: hidden;
+    }
+
+    .graph-zoom-controls {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .zoom-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--border-hairline);
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--ink-primary);
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(20, 27, 38, 0.08);
+    }
+
+    .zoom-btn:hover {
+      background: var(--bg-ice);
+    }
+
+    .graph-fallback-notice {
+      display: none;
+      padding: 32px;
+      text-align: center;
+      color: var(--ink-secondary);
+      font-size: 0.94rem;
+    }
+
+    .graph-fallback-notice.is-visible {
+      display: block;
+    }
+
+    /* 노드 속성 인스펙터 패널 */
+    .inspector-panel {
+      background-color: #ffffff;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-height: 580px;
+      overflow-y: auto;
+    }
+
+    .inspector-head {
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .inspector-kicker {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent-cobalt);
+      margin-bottom: 4px;
+    }
+
+    .inspector-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ink-primary);
+      line-height: 1.35;
+    }
+
+    .inspector-sub {
+      margin: 4px 0 0;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+    }
+
+    .prop-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.87rem;
+    }
+
+    .prop-table th,
+    .prop-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .prop-table th {
+      width: 38%;
+      font-weight: 600;
+      color: var(--ink-muted);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+
+    .prop-table td {
+      color: var(--ink-primary);
+      font-weight: 500;
+    }
+
+    .neighbor-section-title {
+      margin: 0 0 10px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--ink-primary);
+    }
+
+    .neighbor-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .neighbor-btn {
+      width: 100%;
+      text-align: left;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background-color: var(--bg-frost);
+      color: var(--ink-primary);
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: background-color 150ms var(--ease-settle), border-color 150ms var(--ease-settle);
+    }
+
+    .neighbor-btn:hover {
+      background-color: var(--bg-ice);
+      border-color: var(--border-hairline);
+    }
+
+    .neighbor-rel {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--ink-muted);
+      white-space: nowrap;
+    }
+
+    .quick-picks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .quick-pick-btn {
+      min-height: 36px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-hairline);
+      background-color: var(--bg-frost);
+      color: var(--ink-primary);
+      font-size: 0.83rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 150ms var(--ease-settle);
+    }
+
+    .quick-pick-btn:hover {
+      background-color: var(--bg-ice);
+    }
+
+    /* ==========================================================================
+       7. 프로젝트 상세 모달 & 토스트
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(20, 27, 38, 0.45);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.is-open {
+      display: flex;
+    }
+
+    .modal-dialog {
+      width: 100%;
+      max-width: 640px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background-color: #ffffff;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-modal);
+      position: relative;
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-frost);
+      color: var(--ink-primary);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close-btn:hover {
+      background: var(--bg-ice);
+    }
+
+    .modal-highlights {
+      margin: 20px 0 0;
+      padding-left: 20px;
+      color: var(--ink-secondary);
+      font-size: 0.94rem;
+    }
+
+    .modal-highlights li {
+      margin-bottom: 8px;
+    }
+
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background-color: var(--ink-primary);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 300;
+      transition: opacity 180ms var(--ease-settle), transform 180ms var(--ease-settle);
+    }
+
+    .toast-msg.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ==========================================================================
+       8. 푸터 & 반응형 브레이크포인트
+       ========================================================================== */
+    .site-footer {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 48px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+    }
+
+    @media (max-width: 980px) {
+      .hero-split,
+      .about-details-grid,
+      .projects-grid,
+      .explorer-workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .summary-cell:nth-child(2n) {
+        border-right: none;
+      }
+
+      .summary-cell:nth-child(-n+2) {
+        border-bottom: 1px solid var(--border-hairline);
+      }
+
+      .graph-stage {
+        min-height: 0;
+      }
+
+      #neo4j-network {
+        height: 410px;
+      }
+
+      .inspector-panel {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .header-inner {
+        padding: 0 16px;
+        gap: 12px;
+      }
+
+      .nav-links {
+        gap: 16px;
+      }
+
+      .nav-link {
+        font-size: 0.85rem;
+      }
+
+      .section-block {
+        padding: 48px 16px;
+      }
+
+      .about-section {
+        padding-top: 32px;
+      }
+
+      .panel-card,
+      .project-card,
+      .modal-dialog {
+        padding: 20px;
+      }
+
+      .summary-strip,
+      .profile-kv-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-cell {
+        border-right: none;
+        border-bottom: 1px solid var(--border-hairline);
+      }
+
+      .summary-cell:last-child {
+        border-bottom: none;
+      }
+
+      .timeline-item {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       상단 고정 내비게이션 바 (좌: 홈 버튼 / 우: 자기소개 · 프로젝트 · 데이터 탐색)
+       ======================================================================== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#about" class="brand-home" id="home-logo-btn">정민주</a>
+      <nav class="nav-links" aria-label="주 메뉴">
+        <a href="#about" class="nav-link is-active" data-nav="about">자기소개</a>
+        <a href="#projects" class="nav-link" data-nav="projects">프로젝트</a>
+        <a href="#explorer" class="nav-link" data-nav="explorer">데이터 탐색</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-wrap">
+    <!-- ======================================================================
+         ① 자기소개 섹션 (Landing)
+         ====================================================================== -->
+    <section id="about" class="section-block about-section" aria-labelledby="about-heading">
+      <div class="hero-split">
+        <div class="hero-copy">
+          <div class="hero-kicker" id="hero-kicker"></div>
+          <h1 class="hero-title" id="about-heading"></h1>
+          <p class="hero-lead" id="hero-lead"></p>
+          <div class="hero-actions" id="hero-actions"></div>
+        </div>
+
+        <div class="hero-media-frame">
+          <div class="hero-image-box">
+            <img id="profile-avatar-img" src="" alt="정민주 프로필 이미지" referrerpolicy="no-referrer" />
+            <div class="hero-image-fallback" id="profile-avatar-fallback">
+              <div class="fallback-monogram">MJ</div>
+              <div style="font-weight: 600; color: var(--ink-primary);">정민주 · Jeong Minju</div>
+              <div style="font-size: 0.85rem; color: var(--ink-muted);">HAVE FUN · BE CREATIVE</div>
+            </div>
+          </div>
+          <div class="hero-media-caption">
+            <span id="media-caption-left"></span>
+            <span class="hero-media-motto" id="media-caption-right"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4열 핵심 요약 스트립 -->
+      <div class="summary-strip" id="summary-strip"></div>
+
+      <!-- 학력/이력/관심사 & 연락처 -->
+      <div class="about-details-grid">
+        <div class="panel-card">
+          <h2 class="panel-heading">학력 및 주요 프로필</h2>
+          <ul class="timeline-list" id="timeline-list"></ul>
+          <div class="profile-kv-grid" id="preferences-grid"></div>
+        </div>
+
+        <div class="panel-card">
+          <h2 class="panel-heading">연락 방법 및 외부 아카이브</h2>
+          <div class="contact-stack" id="contact-stack"></div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- ======================================================================
+         ② 프로젝트 섹션
+         ====================================================================== -->
+    <section id="projects" class="section-block" aria-labelledby="projects-heading">
+      <div class="section-header">
+        <div>
+          <div class="section-kicker">프로젝트 및 활동 이력</div>
+          <h2 class="section-title" id="projects-heading">데이터 모델링과 디자인의 접점</h2>
+          <p class="section-subtitle">디지털인문학 교과 활동과 캠퍼스 문화 데이터 구조화, 위키 기반 웹 아카이빙 작업을 기록했습니다.</p>
+        </div>
+        <div class="filter-segmented" id="project-filters" role="tablist" aria-label="프로젝트 분류 필터"></div>
+      </div>
+
+      <div class="projects-grid" id="projects-grid"></div>
+    </section>
+
+    <!-- ======================================================================
+         ③ 데이터 탐색 섹션 (Neo4j 인터랙티브 그래프 시각화)
+         ====================================================================== -->
+    <div class="explorer-surface">
+      <section id="explorer" class="section-block" aria-labelledby="explorer-heading">
+        <div class="section-header">
+          <div>
+            <div class="section-kicker">Neo4j 지식 그래프 탐색기</div>
+            <h2 class="section-title" id="explorer-heading">고려대학교 대동제(KUdyssey · Kulimax) 관계망</h2>
+            <p class="section-subtitle">2025 KUdyssey와 2026 Kulimax 축제의 일자, 초청 아티스트, 학생참여주체, 외부 조직 간 연결 구조를 직접 탐색해 보세요.</p>
+          </div>
+        </div>
+
+        <div class="explorer-toolbar">
+          <div class="toolbar-row">
+            <div class="search-box-wrap">
+              <input
+                type="search"
+                id="graph-search-input"
+                class="search-input"
+                placeholder="노드 이름, 장르, 업종, 단체유형 검색 (예: IVE, 고양이, 식음료)"
+                autocomplete="off"
+                aria-label="그래프 노드 검색"
+              />
+              <button type="button" id="graph-search-clear" class="search-clear-btn" aria-label="검색어 지우기">✕</button>
+              <div id="graph-search-dropdown" class="search-results-dropdown" role="listbox" aria-label="검색 결과"></div>
+            </div>
+
+            <div class="toolbar-actions">
+              <label class="context-toggle">
+                <input type="checkbox" id="keep-structure-toggle" checked />
+                <span>연결 축제·일자 함께 보기</span>
+              </label>
+              <button type="button" class="mini-btn" id="btn-fit-graph">전체 맞춤</button>
+              <button type="button" class="mini-btn" id="btn-toggle-physics">물리엔진 일시정지</button>
+              <button type="button" class="mini-btn" id="btn-reset-graph">초기화</button>
+            </div>
+          </div>
+
+          <div class="toolbar-row">
+            <div class="filter-segmented" id="label-filter-bar" role="group" aria-label="노드 라벨 필터"></div>
+            <div class="filter-segmented" id="festival-filter-bar" role="group" aria-label="축제 연도 필터"></div>
+          </div>
+        </div>
+
+        <div class="explorer-workspace">
+          <div class="graph-stage">
+            <div class="graph-legend-bar">
+              <div class="legend-items">
+                <span class="legend-item"><span class="legend-swatch" style="background:#1d4ed8;"></span>축제</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#3b82f6;"></span>일자</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#b45309;"></span>연예인</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#0f766e;"></span>학생참여주체</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#334155;"></span>조직</span>
+              </div>
+              <span class="tabular-nums" id="graph-visible-stats">표시 중: 노드 150 · 관계 242</span>
+            </div>
+
+            <div id="neo4j-network" aria-label="Neo4j 인터랙티브 그래프 캔버스"></div>
+            <div id="graph-fallback-notice" class="graph-fallback-notice">
+              그래프 시각화 라이브러리(Vis.js)를 불러오는 중이거나 오프라인 상태입니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요.
+            </div>
+
+            <div class="graph-zoom-controls" aria-label="그래프 확대 축소">
+              <button type="button" class="zoom-btn" id="btn-zoom-in" aria-label="확대">+</button>
+              <button type="button" class="zoom-btn" id="btn-zoom-out" aria-label="축소">−</button>
+            </div>
+          </div>
+
+          <aside class="inspector-panel" id="node-inspector" aria-live="polite"></aside>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <span id="footer-copy"></span>
+    <span id="footer-note">단일 HTML 포트폴리오 · GitHub Pages 바로 배포 가능</span>
+  </footer>
+
+  <!-- 프로젝트 상세 모달 -->
+  <div class="modal-backdrop" id="project-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-dialog">
+      <button type="button" class="modal-close-btn" id="modal-close-btn" aria-label="모달 닫기">✕</button>
+      <div class="project-meta" id="modal-meta"></div>
+      <h3 class="project-title" id="modal-title" style="font-size: 1.45rem; padding-right: 40px;"></h3>
+      <p class="project-summary" id="modal-desc"></p>
+      <ul class="modal-highlights" id="modal-highlights"></ul>
+      <div style="margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px;" id="modal-actions"></div>
+    </div>
+  </div>
+
+  <!-- 복사 알림 토스트 -->
+  <div class="toast-msg" id="toast-msg" role="status" aria-live="polite"></div>
+
+  <script>
+    // Vis.js 등 캔버스 리사이즈 중 발생하는 무해한 ResizeObserver 루프 알림 방지
+    window.addEventListener("error", event => {
+      if (event.message && event.message.includes("ResizeObserver loop")) {
+        event.stopImmediatePropagation();
+      }
+    });
+
+    /* ==========================================================================
+       PORTFOLIO_DATA: 개인 포트폴리오 전체 콘텐츠 설정 객체
+       --------------------------------------------------------------------------
+       앞으로 LinkedIn 프로필에 연결한 뒤 이력, 연락처, 프로젝트를 직접 수정하거나
+       추가할 때는 아래 PORTFOLIO_DATA 내부의 값만 편집하면 화면에 자동 반영됩니다.
+       ========================================================================== */
+    const PORTFOLIO_DATA = {
+      /* ------------------------------------------------------------------------
+         1. 기본 프로필 및 자기소개
+         ------------------------------------------------------------------------ */
+      profile: {
+        name: "정민주",
+        englishName: "Jeong Minju",
+        kicker: "고려대학교 24학번 · 불어불문학과 · 식품자원경제학과",
+        headlinePrefix: "재미있게 살자 —",
+        headlineMain: "언어와 데이터를 디자인으로 잇는 정민주입니다.",
+        bio: "고려대학교에서 불어불문학을 전공하고 식품자원경제학을 복수전공하고 있습니다. 인간 중심의 사회적 가치를 탐구한 디자이너 빅터 파파넥을 롤모델로 삼아, 디자인·MD 기획과 디지털인문학 데이터 시각화의 접점을 넓혀가고 있습니다.",
+        motto: "재미있게 살자!",
+        englishMotto: "HAVE FUN · BE CREATIVE",
+        /* GitHub Pages 업로드 시 레포지토리에 함께 올린 이미지 파일명(예: ./profile.png)으로 바꾸세요. */
+        avatar: "/assets/aistudio/image_2235d073.png",
+        /* 로컬 이미지가 없을 경우 자동으로 위키 프로필 사진을 불러옵니다. */
+        avatarFallback: "https://dh.aks.ac.kr/~kimseoyun/wiki/images/thumb/d/d4/%EC%A0%95%EB%AF%BC%EC%A3%BC.jpeg/500px-%EC%A0%95%EB%AF%BC%EC%A3%BC.jpeg",
+        wikiUrl: "https://dh.aks.ac.kr/~kimseoyun/wiki/index.php/%EC%82%AC%EC%9A%A9%EC%9E%90:%EC%A0%95%EB%AF%BC%EC%A3%BC",
+        aiWikiUrl: "https://dh.aks.ac.kr/~kimseoyun/wiki/index.php/AI_%EC%A0%95%EB%AF%BC%EC%A3%BC"
+      },
+
+      /* ------------------------------------------------------------------------
+         2. 상단 4열 핵심 요약 카드 (원하는 4가지 키워드로 자유롭게 변경 가능)
+         ------------------------------------------------------------------------ */
+      summaryMetrics: [
+        { label: "소속 및 학번", value: "고려대학교 · 2024년 입학" },
+        { label: "전공 트랙", value: "불어불문학과 · 식품자원경제학과" },
+        { label: "관심 진로 · 롤모델", value: "디자인 · MD · 빅터 파파넥" },
+        { label: "MBTI · 관심 분과", value: "ENFP · 전시창작분과" }
+      ],
+
+      /* ------------------------------------------------------------------------
+         3. 학력 및 활동 이력 (새 경력/대외활동이 생기면 배열 맨 위에 객체 추가)
+         ------------------------------------------------------------------------ */
+      timeline: [
+        {
+          period: "2026 – 현재",
+          title: "디지털인문학 응용 프로젝트 · 지식 그래프 & 웹 아카이빙",
+          description: "Neo4j 기반 고려대학교 대동제(KUdyssey·Kulimax) 참여 생태계 데이터 모델링 및 MediaWiki 개인 아카이브 구축"
+        },
+        {
+          period: "2024 – 현재",
+          title: "고려대학교 식품자원경제학과 (복수전공)",
+          description: "시장 구조와 소비자 데이터, 산업 맥락을 정량적으로 해석하는 응용경제 역량 심화"
+        },
+        {
+          period: "2024 – 현재",
+          title: "고려대학교 불어불문학과 (본전공, 24학번)",
+          description: "인문학적 텍스트 독해력과 문화적 감수성을 바탕으로 디자인·MD 커뮤니케이션 기반 형성"
+        }
+      ],
+
+      /* ------------------------------------------------------------------------
+         4. 선호 및 관심사 (위키 기본 정보 기반)
+         ------------------------------------------------------------------------ */
+      preferences: [
+        { key: "MBTI", value: "ENFP" },
+        { key: "관심 직업 분야", value: "디자인 / MD" },
+        { key: "롤모델", value: "빅터 파파넥 (Victor Papanek)" },
+        { key: "관심 동아리 분과", value: "전시창작분과" },
+        { key: "자주 사용하는 AI", value: "챗GPT (ChatGPT)" },
+        { key: "소울푸드 · 여행지", value: "닭갈비 · 크로아티아" }
+      ],
+
+      /* ------------------------------------------------------------------------
+         5. 연락처 및 외부 링크
+            - enabled: false 인 항목은 화면에 표시되지 않습니다.
+            - LinkedIn이나 GitHub URL을 발급받으면 url을 채우고 enabled: true로 바꾸세요!
+         ------------------------------------------------------------------------ */
+      contacts: [
+        {
+          type: "이메일 (Google)",
+          label: "muduma05@gmail.com",
+          url: "mailto:muduma05@gmail.com",
+          copyText: "muduma05@gmail.com",
+          actionLabel: "메일 보내기",
+          enabled: true
+        },
+        {
+          type: "자기소개 위키 (원본)",
+          label: "Digital Humanities Wiki — 사용자:정민주",
+          url: "https://dh.aks.ac.kr/~kimseoyun/wiki/index.php/%EC%82%AC%EC%9A%A9%EC%9E%90:%EC%A0%95%EB%AF%BC%EC%A3%BC",
+          actionLabel: "위키 열기",
+          enabled: true
+        },
+        {
+          type: "비주얼 프로필 위키",
+          label: "Digital Humanities Wiki — AI 정민주",
+          url: "https://dh.aks.ac.kr/~kimseoyun/wiki/index.php/AI_%EC%A0%95%EB%AF%BC%EC%A3%BC",
+          actionLabel: "페이지 열기",
+          enabled: true
+        },
+        {
+          type: "활동 SNS",
+          label: "인스타그램 (활동 채널 · 프로필 링크를 입력해 연결하세요)",
+          url: "https://www.instagram.com/",
+          actionLabel: "Instagram",
+          enabled: true
+        },
+        {
+          type: "프로페셔널 네트워크 (LinkedIn)",
+          label: "linkedin.com/in/your-handle",
+          url: "", // 예: "https://www.linkedin.com/in/minju-jeong" 입력 후 enabled: true
+          actionLabel: "LinkedIn",
+          enabled: false
+        },
+        {
+          type: "코드 저장소 (GitHub)",
+          label: "github.com/your-id",
+          url: "", // 예: "https://github.com/muduma05" 입력 후 enabled: true
+          actionLabel: "GitHub",
+          enabled: false
+        }
+      ],
+
+      /* ------------------------------------------------------------------------
+         6. 프로젝트 목록 (새 프로젝트를 추가하려면 배열에 아래 양식대로 객체 추가)
+            category: "데이터·지식그래프" 또는 "웹·아카이빙" (새 카테고리 추가 시 자동 필터 생성)
+         ------------------------------------------------------------------------ */
+      projects: [
+        {
+          id: "proj-ku-festival",
+          category: "데이터·지식그래프",
+          period: "2025 – 2026",
+          role: "데이터 모델링 · 그래프 시각화",
+          title: "고려대학교 대동제(KUdyssey · Kulimax) 생태계 지식 그래프",
+          summary: "2025년 KUdyssey와 2026년 Kulimax 축제의 일자별 라인업, 학생참여주체(공연·비공연 부스), 외부 브랜드 조직을 Neo4j 그래프 DB로 구조화하여 연도별 참여 패턴과 다중 참여 주체를 시각화했습니다.",
+          stack: "Neo4j · JSON · Vis.js Network",
+          highlights: [
+            "총 150개 노드(축제 2, 일자 6, 연예인 31, 학생참여주체 84, 조직 27)와 242개 관계(HAS_DAY, PERFORMED_IN, OPERATED_BOOTH_IN) 구축",
+            "연예인(투모로우바이투게더, 아일릿 등) 및 학생단체(고려대학교고양이쉼터, 평화나비 등)의 2개년 연속 참여 허브 탐색 지원",
+            "포트폴리오 하단 '데이터 탐색' 섹션에서 라벨·연도 필터와 속성 검색으로 실시간 탐색 가능"
+          ],
+          exploreAction: {
+            label: "그래프 탐색기에서 보기",
+            festivalFilter: "all"
+          },
+          externalUrl: ""
+        },
+        {
+          id: "proj-lst-ontology",
+          category: "데이터·지식그래프",
+          period: "2026.09",
+          role: "온톨로지 설계 · 네트워크 스크립트",
+          title: "디지털인문학 응용 동료 네트워크 그래프 (정민주.lst)",
+          summary: "수업 수강생(인물)과 전공·입학년도·MBTI·자주 쓰는 AI 및 SNS(속성) 간의 관계를 5종의 서술적 엣지로 정의해 MakeGraph 네트워크 데이터셋을 구축했습니다.",
+          stack: "MakeGraph LST · MediaWiki · 온톨로지",
+          highlights: [
+            "인물 13명 및 학과·MBTI·AI 도구·SNS 등 속성 17개를 노드로 정의",
+            "'입학년도이다', '소속이다', 'MBTI이다', '자주사용한다', '부전공한다' 5가지 관계 어휘 설계",
+            "학우들 간의 공통 관심사 및 복수전공/사용 도구 클러스터링 확인"
+          ],
+          externalUrl: "https://dh.aks.ac.kr/~kimseoyun/wiki/index.php/%EC%A0%95%EB%AF%BC%EC%A3%BC.lst"
+        },
+        {
+          id: "proj-ai-wiki",
+          category: "웹·아카이빙",
+          period: "2026.09",
+          role: "비주얼 기획 · HTML/CSS 구성",
+          title: "MediaWiki 기반 비주얼 자기소개 아카이브 (AI 정민주)",
+          summary: "정적인 위키 표(wikitable)로 작성된 개인 프로필을 팝아트 무드와 구조화된 정보 블록으로 재해석하여 웹 페이지 형태로 아카이빙했습니다.",
+          stack: "HTML · CSS · MediaWiki",
+          highlights: [
+            "기본 정보, 선호·관심사, 취업·진로 3개 섹션의 정보 위계 재설계",
+            "모토('재미있게 살자!')와 디자인/MD 지향점을 시각적 타이포그래피로 강조",
+            "위키 원본(사용자:정민주)과 시각 버전(AI 정민주)을 상호 연결해 버전 아카이브 유지"
+          ],
+          externalUrl: "https://dh.aks.ac.kr/~kimseoyun/wiki/index.php/AI_%EC%A0%95%EB%AF%BC%EC%A3%BC"
+        },
+        {
+          id: "proj-design-md",
+          category: "웹·아카이빙",
+          period: "2024 – 2026",
+          role: "리서치 · 포트폴리오 기획",
+          title: "사용자:정민주 위키 기반 디자인·MD 진로 아카이브",
+          summary: "불어불문학의 문화적 맥락과 식품자원경제학의 시장 분석 시각을 결합해, 빅터 파파넥의 지속가능·인간중심 디자인 철학을 탐구하고 포트폴리오로 통합했습니다.",
+          stack: "Design Research · Digital Humanities · GitHub Pages",
+          highlights: [
+            "인문학·경제학 복수전공 관점에서 제품/전시 MD 기획 방향성 정리",
+            "LinkedIn 및 GitHub Pages 연동을 위한 단일 파일형 모듈형 포트폴리오 설계",
+            "상단 PORTFOLIO_DATA 구조를 통해 향후 전시·MD 작업물을 즉시 추가 가능"
+          ],
+          externalUrl: "https://dh.aks.ac.kr/~kimseoyun/wiki/index.php/%EC%82%AC%EC%9A%A9%EC%9E%90:%EC%A0%95%EB%AF%BC%EC%A3%BC"
+        }
+      ],
+
+      /* ------------------------------------------------------------------------
+         7. Neo4j 그래프 데이터 (첨부된 Neo4j 데이터.json 전체 150개 노드, 242개 관계)
+         ------------------------------------------------------------------------ */
+      neo4jGraph: {"nodes":[{"id":"0","labels":["일자"],"properties":{"name":"2025 day1","id":"DAY001","class":"일자"}},{"id":"1","labels":["일자"],"properties":{"name":"2025 day2","id":"DAY002","class":"일자"}},{"id":"2","labels":["일자"],"properties":{"name":"2025 day3","id":"DAY003","class":"일자"}},{"id":"3","labels":["일자"],"properties":{"name":"2026 day1","id":"DAY004","class":"일자"}},{"id":"4","labels":["일자"],"properties":{"name":"2026 day2","id":"DAY005","class":"일자"}},{"id":"5","labels":["일자"],"properties":{"name":"2026 day3","id":"DAY006","class":"일자"}},{"id":"6","labels":["축제"],"properties":{"year":2025,"name":"KUdyssey","id":"FEST2025","class":"축제"}},{"id":"7","labels":["축제"],"properties":{"year":2026,"name":"Kulimax","id":"FEST2026","class":"축제"}},{"id":"8","labels":["연예인"],"properties":{"name":"로시","genre":"여성 솔로","id":"ART001","class":"연예인"}},{"id":"9","labels":["연예인"],"properties":{"name":"이츠","genre":"여성 솔로","id":"ART002","class":"연예인"}},{"id":"10","labels":["연예인"],"properties":{"name":"하현상","genre":"남성 솔로","id":"ART003","class":"연예인"}},{"id":"11","labels":["연예인"],"properties":{"name":"윤하","genre":"여성 솔로","id":"ART004","class":"연예인"}},{"id":"12","labels":["연예인"],"properties":{"name":"체리필터","genre":"록 밴드","id":"ART005","class":"연예인"}},{"id":"13","labels":["연예인"],"properties":{"name":"리센느","genre":"걸그룹","id":"ART006","class":"연예인"}},{"id":"14","labels":["연예인"],"properties":{"name":"IFEYE","genre":"걸그룹","id":"ART007","class":"연예인"}},{"id":"15","labels":["연예인"],"properties":{"name":"비투비","genre":"보이그룹","id":"ART008","class":"연예인"}},{"id":"16","labels":["연예인"],"properties":{"name":"권진아","genre":"여성 솔로","id":"ART009","class":"연예인"}},{"id":"17","labels":["연예인"],"properties":{"name":"투모로우바이투게더","genre":"보이그룹","id":"ART010","class":"연예인"}},{"id":"18","labels":["연예인"],"properties":{"name":"빈지노","genre":"힙합","id":"ART011","class":"연예인"}},{"id":"19","labels":["연예인"],"properties":{"name":"유니스","genre":"걸그룹","id":"ART012","class":"연예인"}},{"id":"20","labels":["연예인"],"properties":{"name":"우디","genre":"남성 솔로","id":"ART013","class":"연예인"}},{"id":"21","labels":["연예인"],"properties":{"name":"아일릿","genre":"걸그룹","id":"ART014","class":"연예인"}},{"id":"22","labels":["연예인"],"properties":{"name":"MEOVV","genre":"걸그룹","id":"ART015","class":"연예인"}},{"id":"23","labels":["연예인"],"properties":{"name":"IVE","genre":"걸그룹","id":"ART016","class":"연예인"}},{"id":"24","labels":["연예인"],"properties":{"name":"대성","genre":"남성 솔로","id":"ART017","class":"연예인"}},{"id":"25","labels":["연예인"],"properties":{"name":"인어미닛","genre":"보이그룹","id":"ART018","class":"연예인"}},{"id":"26","labels":["연예인"],"properties":{"name":"마이티마우스","genre":"힙합","id":"ART019","class":"연예인"}},{"id":"27","labels":["연예인"],"properties":{"name":"코르티스","genre":"보이그룹","id":"ART020","class":"연예인"}},{"id":"28","labels":["연예인"],"properties":{"name":"르세라핌","genre":"걸그룹","id":"ART021","class":"연예인"}},{"id":"29","labels":["연예인"],"properties":{"name":"세이마이네임","genre":"걸그룹","id":"ART022","class":"연예인"}},{"id":"30","labels":["연예인"],"properties":{"name":"이지카이트","genre":"여성 솔로","id":"ART023","class":"연예인"}},{"id":"31","labels":["연예인"],"properties":{"name":"한로로","genre":"여성 솔로","id":"ART024","class":"연예인"}},{"id":"32","labels":["연예인"],"properties":{"name":"프로미스나인","genre":"걸그룹","id":"ART025","class":"연예인"}},{"id":"33","labels":["연예인"],"properties":{"name":"무모한사람들","genre":"록 밴드","id":"ART026","class":"연예인"}},{"id":"34","labels":["연예인"],"properties":{"name":"보이넥스트도어","genre":"보이그룹","id":"ART027","class":"연예인"}},{"id":"35","labels":["연예인"],"properties":{"name":"키키","genre":"걸그룹","id":"ART028","class":"연예인"}},{"id":"36","labels":["연예인"],"properties":{"name":"나상현씨밴드","genre":"록 밴드","id":"ART029","class":"연예인"}},{"id":"37","labels":["연예인"],"properties":{"name":"오드유스","genre":"걸그룹","id":"ART030","class":"연예인"}},{"id":"38","labels":["연예인"],"properties":{"name":"트랜스픽션","genre":"록 밴드","id":"ART031","class":"연예인"}},{"id":"39","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"김원지","id":"STU001","class":"학생참여주체"}},{"id":"40","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"공연","name":"구름다리확장공사","id":"STU002","class":"학생참여주체"}},{"id":"41","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"공연","name":"크림슨","id":"STU003","class":"학생참여주체"}},{"id":"42","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"공연","name":"TERRA","id":"STU004","class":"학생참여주체"}},{"id":"43","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"공연","name":"여섯줄소리하나","id":"STU005","class":"학생참여주체"}},{"id":"44","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"공연","name":"라온제나","id":"STU006","class":"학생참여주체"}},{"id":"45","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"매달리까","id":"STU007","class":"학생참여주체"}},{"id":"46","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"린킨 박","id":"STU008","class":"학생참여주체"}},{"id":"47","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"공연","name":"재스","id":"STU009","class":"학생참여주체"}},{"id":"48","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"폭삭늙었수다","id":"STU010","class":"학생참여주체"}},{"id":"49","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"접지상태","id":"STU011","class":"학생참여주체"}},{"id":"50","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"공연","name":"인투더쏭","id":"STU012","class":"학생참여주체"}},{"id":"51","labels":["학생참여주체"],"properties":{"orgType":"애기능","participationType":"공연","name":"1905","id":"STU013","class":"학생참여주체"}},{"id":"52","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"안재홍","id":"STU014","class":"학생참여주체"}},{"id":"53","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"생태계교란종","id":"STU015","class":"학생참여주체"}},{"id":"54","labels":["학생참여주체"],"properties":{"orgType":"애기능","participationType":"공연","name":"오칼(0Kcal)","id":"STU016","class":"학생참여주체"}},{"id":"55","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"삼배일보","id":"STU017","class":"학생참여주체"}},{"id":"56","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"공연","name":"와일드아이즈","id":"STU018","class":"학생참여주체"}},{"id":"57","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"하모니즈","id":"STU019","class":"학생참여주체"}},{"id":"58","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"이거하려고졸업미뤘다","id":"STU020","class":"학생참여주체"}},{"id":"59","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"공연","name":"소리하나","id":"STU021","class":"학생참여주체"}},{"id":"60","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"그린파크","id":"STU022","class":"학생참여주체"}},{"id":"61","labels":["학생참여주체"],"properties":{"orgType":"애기능","participationType":"공연","name":"TRUSS","id":"STU023","class":"학생참여주체"}},{"id":"62","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"음악적어리석음으로부터의탈출","id":"STU024","class":"학생참여주체"}},{"id":"63","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"공연","name":"KUDT","id":"STU025","class":"학생참여주체"}},{"id":"64","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"무모한사람들","id":"STU026","class":"학생참여주체"}},{"id":"65","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"공연","name":"LoGS","id":"STU027","class":"학생참여주체"}},{"id":"66","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"승원이한테 팀명정해달라했는데 안정해줌","id":"STU028","class":"학생참여주체"}},{"id":"67","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"웅달쌤","id":"STU029","class":"학생참여주체"}},{"id":"68","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"MOST(모스트)","id":"STU030","class":"학생참여주체"}},{"id":"69","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"박회원밴드","id":"STU031","class":"학생참여주체"}},{"id":"70","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"박정하","id":"STU032","class":"학생참여주체"}},{"id":"71","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"도토리야","id":"STU033","class":"학생참여주체"}},{"id":"72","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"JB","id":"STU034","class":"학생참여주체"}},{"id":"73","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"공연","name":"퀀텀점프(여섯줄 소리하나)","id":"STU035","class":"학생참여주체"}},{"id":"74","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"교직0교시반대운동","id":"STU036","class":"학생참여주체"}},{"id":"75","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"김하영","id":"STU037","class":"학생참여주체"}},{"id":"76","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"최예준할아버지인생최후의끌어치기","id":"STU038","class":"학생참여주체"}},{"id":"77","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"한시오분(01:05)","id":"STU039","class":"학생참여주체"}},{"id":"78","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"감성과파워풀소울풀심쿵로맨틱두바이붐동비빔버터떡이승우밴드","id":"STU040","class":"학생참여주체"}},{"id":"79","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"비(雨)급밴드","id":"STU041","class":"학생참여주체"}},{"id":"80","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"공연","name":"PMS(Perfectly Mad Scientists)","id":"STU042","class":"학생참여주체"}},{"id":"81","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"공연","name":"구도회","id":"STU043","class":"학생참여주체"}},{"id":"82","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"비공연","name":"고려대학교고양이쉼터","id":"STU044","class":"학생참여주체"}},{"id":"83","labels":["학생참여주체"],"properties":{"orgType":"교내소속단체","participationType":"비공연","name":"농구부 프런트 어흥","id":"STU045","class":"학생참여주체"}},{"id":"84","labels":["학생참여주체"],"properties":{"orgType":"교내소속단체","participationType":"비공연","name":"학생홍보대사 여울","id":"STU046","class":"학생참여주체"}},{"id":"85","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"비공연","name":"DEKHAUS","id":"STU047","class":"학생참여주체"}},{"id":"86","labels":["학생참여주체"],"properties":{"orgType":"교내소속단체","participationType":"비공연","name":"리필로드","id":"STU048","class":"학생참여주체"}},{"id":"87","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"비공연","name":"무적카메라","id":"STU049","class":"학생참여주체"}},{"id":"88","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"미소","id":"STU050","class":"학생참여주체"}},{"id":"89","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"비공연","name":"사학과","id":"STU051","class":"학생참여주체"}},{"id":"90","labels":["학생참여주체"],"properties":{"orgType":"교내소속단체","participationType":"비공연","name":"장애학생지원센터 서포터즈 모해","id":"STU052","class":"학생참여주체"}},{"id":"91","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"비공연","name":"퍼블릭스","id":"STU053","class":"학생참여주체"}},{"id":"92","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"비공연","name":"정경대학 호토그래퍼","id":"STU054","class":"학생참여주체"}},{"id":"93","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"비공연","name":"캘리쿠","id":"STU055","class":"학생참여주체"}},{"id":"94","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"비공연","name":"커리손으로먹기연구회","id":"STU056","class":"학생참여주체"}},{"id":"95","labels":["학생참여주체"],"properties":{"orgType":"교내소속단체","participationType":"비공연","name":"크림슨스토어","id":"STU057","class":"학생참여주체"}},{"id":"96","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"비공연","name":"KUSEP","id":"STU058","class":"학생참여주체"}},{"id":"97","labels":["학생참여주체"],"properties":{"orgType":"애기능","participationType":"비공연","name":"네비게이토","id":"STU059","class":"학생참여주체"}},{"id":"98","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"비공연","name":"아이디어마켓","id":"STU060","class":"학생참여주체"}},{"id":"99","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"소사소시","id":"STU061","class":"학생참여주체"}},{"id":"100","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"비공연","name":"KUSPA","id":"STU062","class":"학생참여주체"}},{"id":"101","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"DSM","id":"STU063","class":"학생참여주체"}},{"id":"102","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"평화나비","id":"STU064","class":"학생참여주체"}},{"id":"103","labels":["학생참여주체"],"properties":{"orgType":"교내소속단체","participationType":"비공연","name":"고려대학교 장애인권위원회","id":"STU065","class":"학생참여주체"}},{"id":"104","labels":["학생참여주체"],"properties":{"orgType":"교내소속단체","participationType":"비공연","name":"축구부 프런트 KUFF","id":"STU066","class":"학생참여주체"}},{"id":"105","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"고대타로","id":"STU067","class":"학생참여주체"}},{"id":"106","labels":["학생참여주체"],"properties":{"orgType":"교내소속단체","participationType":"비공연","name":"KUISA","id":"STU068","class":"학생참여주체"}},{"id":"107","labels":["학생참여주체"],"properties":{"orgType":"교내소속단체","participationType":"비공연","name":"고려대학교 체인지메이커스","id":"STU069","class":"학생참여주체"}},{"id":"108","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"비공연","name":"생명과학대학","id":"STU070","class":"학생참여주체"}},{"id":"109","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"비공연","name":"그림마당","id":"STU071","class":"학생참여주체"}},{"id":"110","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"KUISA FC","id":"STU072","class":"학생참여주체"}},{"id":"111","labels":["학생참여주체"],"properties":{"orgType":"중앙동아리","participationType":"비공연","name":"미스디렉션","id":"STU073","class":"학생참여주체"}},{"id":"112","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"인동 고려대지부","id":"STU074","class":"학생참여주체"}},{"id":"113","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체 ","participationType":"비공연","name":"한사위","id":"STU075","class":"학생참여주체"}},{"id":"114","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"비공연","name":"보건정책관리학부","id":"STU076","class":"학생참여주체"}},{"id":"115","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"UNAI ASPIRE KU","id":"STU077","class":"학생참여주체"}},{"id":"116","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"고려대학교 코인노래방 소모임","id":"STU078","class":"학생참여주체"}},{"id":"117","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"후려쳐패밀리","id":"STU079","class":"학생참여주체"}},{"id":"118","labels":["학생참여주체"],"properties":{"orgType":"교내소속단체","participationType":"비공연","name":"고려대학교TV 방송국 KTN","id":"STU080","class":"학생참여주체"}},{"id":"119","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체","participationType":"비공연","name":"산업경영공학부","id":"STU081","class":"학생참여주체"}},{"id":"120","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체 ","participationType":"비공연","name":"라디안","id":"STU082","class":"학생참여주체"}},{"id":"121","labels":["학생참여주체"],"properties":{"orgType":"개별참여단체","participationType":"비공연","name":"BREA:D","id":"STU083","class":"학생참여주체"}},{"id":"122","labels":["학생참여주체"],"properties":{"orgType":"학부/학과소속단체 ","participationType":"비공연","name":"노어노문학과 봉사동아리 카란다쉬","id":"STU084","class":"학생참여주체"}},{"id":"123","labels":["조직"],"properties":{"name":"CJ바삭칩","industry":"식음료","id":"ORG001","class":"조직"}},{"id":"124","labels":["조직"],"properties":{"name":"스푼","industry":"미디어·콘텐츠","id":"ORG002","class":"조직"}},{"id":"125","labels":["조직"],"properties":{"name":"롯데호텔","industry":"숙박·관광","id":"ORG003","class":"조직"}},{"id":"126","labels":["조직"],"properties":{"name":"동아제약","industry":"의료·헬스케어","id":"ORG004","class":"조직"}},{"id":"127","labels":["조직"],"properties":{"name":"KRUSH","industry":"주류·담배","id":"ORG005","class":"조직"}},{"id":"128","labels":["조직"],"properties":{"name":"갤럭시 캠퍼스 스튜디오","industry":"IT·통신","id":"ORG006","class":"조직"}},{"id":"129","labels":["조직"],"properties":{"name":"청년피자","industry":"식음료","id":"ORG007","class":"조직"}},{"id":"130","labels":["조직"],"properties":{"name":"슈퍼너츠","industry":"식음료","id":"ORG008","class":"조직"}},{"id":"131","labels":["조직"],"properties":{"name":"JC빛소망안과","industry":"의료·헬스케어","id":"ORG009","class":"조직"}},{"id":"132","labels":["조직"],"properties":{"name":"동아일보","industry":"미디어·콘텐츠","id":"ORG010","class":"조직"}},{"id":"133","labels":["조직"],"properties":{"name":"LG유플러스","industry":"IT·통신","id":"ORG011","class":"조직"}},{"id":"134","labels":["조직"],"properties":{"name":"카카오게임즈","industry":"미디어·콘텐츠","id":"ORG012","class":"조직"}},{"id":"135","labels":["조직"],"properties":{"name":"미래에셋","industry":"금융","id":"ORG013","class":"조직"}},{"id":"136","labels":["조직"],"properties":{"name":"CEO인터내셔널","industry":"유통·패션·뷰티","id":"ORG014","class":"조직"}},{"id":"137","labels":["조직"],"properties":{"name":"남양 초코에몽","industry":"식음료","id":"ORG015","class":"조직"}},{"id":"138","labels":["조직"],"properties":{"name":"리즈랩딜리버리","industry":"의료·헬스케어","id":"ORG016","class":"조직"}},{"id":"139","labels":["조직"],"properties":{"name":"네이버웨일","industry":"IT·통신","id":"ORG017","class":"조직"}},{"id":"140","labels":["조직"],"properties":{"name":"SHEIN(쉬인)","industry":"유통·패션·뷰티","id":"ORG018","class":"조직"}},{"id":"141","labels":["조직"],"properties":{"name":"하이트진로음료","industry":"식음료","id":"ORG019","class":"조직"}},{"id":"142","labels":["조직"],"properties":{"name":"존슨앤드존슨","industry":"의료·헬스케어","id":"ORG020","class":"조직"}},{"id":"143","labels":["조직"],"properties":{"name":"GS25 데이지라거","industry":"주류·담배","id":"ORG021","class":"조직"}},{"id":"144","labels":["조직"],"properties":{"name":"롯데칠성","industry":"식음료","id":"ORG022","class":"조직"}},{"id":"145","labels":["조직"],"properties":{"name":"GS안과","industry":"의료·헬스케어","id":"ORG023","class":"조직"}},{"id":"146","labels":["조직"],"properties":{"name":"G7커피","industry":"식음료","id":"ORG024","class":"조직"}},{"id":"147","labels":["조직"],"properties":{"name":"아이코스","industry":"주류·담배","id":"ORG025","class":"조직"}},{"id":"148","labels":["조직"],"properties":{"name":"레드불","industry":"식음료","id":"ORG026","class":"조직"}},{"id":"149","labels":["조직"],"properties":{"name":"쿠팡플레이","industry":"미디어·콘텐츠","id":"ORG027","class":"조직"}}],"relationships":[{"id":"1152921504606846982","label":"HAS_DAY","start":"6","end":"0"},{"id":"1155173304420532230","label":"HAS_DAY","start":"6","end":"1"},{"id":"1157425104234217478","label":"HAS_DAY","start":"6","end":"2"},{"id":"1152921504606846983","label":"HAS_DAY","start":"7","end":"3"},{"id":"1155173304420532231","label":"HAS_DAY","start":"7","end":"4"},{"id":"1157425104234217479","label":"HAS_DAY","start":"7","end":"5"},{"id":"1152922604118474760","label":"PERFORMED_IN","start":"8","end":"0"},{"id":"1152922604118474761","label":"PERFORMED_IN","start":"9","end":"0"},{"id":"1152922604118474762","label":"PERFORMED_IN","start":"10","end":"0"},{"id":"1152922604118474763","label":"PERFORMED_IN","start":"11","end":"0"},{"id":"1152922604118474764","label":"PERFORMED_IN","start":"12","end":"0"},{"id":"1152922604118474765","label":"PERFORMED_IN","start":"13","end":"1"},{"id":"1152922604118474766","label":"PERFORMED_IN","start":"14","end":"1"},{"id":"1152922604118474767","label":"PERFORMED_IN","start":"15","end":"1"},{"id":"1152922604118474768","label":"PERFORMED_IN","start":"16","end":"1"},{"id":"1152922604118474769","label":"PERFORMED_IN","start":"17","end":"1"},{"id":"1155174403932160017","label":"PERFORMED_IN","start":"17","end":"4"},{"id":"1152922604118474770","label":"PERFORMED_IN","start":"18","end":"1"},{"id":"1152922604118474771","label":"PERFORMED_IN","start":"19","end":"2"},{"id":"1152922604118474772","label":"PERFORMED_IN","start":"20","end":"2"},{"id":"1152922604118474773","label":"PERFORMED_IN","start":"21","end":"2"},{"id":"1155174403932160021","label":"PERFORMED_IN","start":"21","end":"3"},{"id":"1152922604118474774","label":"PERFORMED_IN","start":"22","end":"2"},{"id":"1152922604118474775","label":"PERFORMED_IN","start":"23","end":"2"},{"id":"1152922604118474776","label":"PERFORMED_IN","start":"24","end":"2"},{"id":"1152922604118474777","label":"PERFORMED_IN","start":"25","end":"3"},{"id":"1152922604118474778","label":"PERFORMED_IN","start":"26","end":"3"},{"id":"1152922604118474779","label":"PERFORMED_IN","start":"27","end":"3"},{"id":"1152922604118474780","label":"PERFORMED_IN","start":"28","end":"3"},{"id":"1152922604118474781","label":"PERFORMED_IN","start":"29","end":"4"},{"id":"1152922604118474782","label":"PERFORMED_IN","start":"30","end":"4"},{"id":"1152922604118474783","label":"PERFORMED_IN","start":"31","end":"4"},{"id":"1152922604118474784","label":"PERFORMED_IN","start":"32","end":"4"},{"id":"1152922604118474785","label":"PERFORMED_IN","start":"33","end":"5"},{"id":"1152922604118474786","label":"PERFORMED_IN","start":"34","end":"5"},{"id":"1152922604118474787","label":"PERFORMED_IN","start":"35","end":"5"},{"id":"1152922604118474788","label":"PERFORMED_IN","start":"36","end":"5"},{"id":"1152922604118474789","label":"PERFORMED_IN","start":"37","end":"5"},{"id":"1152922604118474790","label":"PERFORMED_IN","start":"38","end":"5"},{"id":"1152922604118474791","label":"PERFORMED_IN","start":"39","end":"0"},{"id":"1152922604118474792","label":"PERFORMED_IN","start":"40","end":"0"},{"id":"1152922604118474793","label":"PERFORMED_IN","start":"41","end":"0"},{"id":"1155174403932160041","label":"PERFORMED_IN","start":"41","end":"3"},{"id":"1152922604118474794","label":"PERFORMED_IN","start":"42","end":"0"},{"id":"1155174403932160042","label":"PERFORMED_IN","start":"42","end":"3"},{"id":"1152922604118474795","label":"PERFORMED_IN","start":"43","end":"0"},{"id":"1152922604118474796","label":"PERFORMED_IN","start":"44","end":"0"},{"id":"1155174403932160044","label":"PERFORMED_IN","start":"44","end":"3"},{"id":"1152922604118474797","label":"PERFORMED_IN","start":"45","end":"0"},{"id":"1152922604118474798","label":"PERFORMED_IN","start":"46","end":"0"},{"id":"1152922604118474799","label":"PERFORMED_IN","start":"47","end":"1"},{"id":"1152922604118474800","label":"PERFORMED_IN","start":"48","end":"1"},{"id":"1152922604118474801","label":"PERFORMED_IN","start":"49","end":"1"},{"id":"1152922604118474802","label":"PERFORMED_IN","start":"50","end":"1"},{"id":"1152922604118474803","label":"PERFORMED_IN","start":"51","end":"1"},{"id":"1155174403932160051","label":"PERFORMED_IN","start":"51","end":"5"},{"id":"1152922604118474804","label":"PERFORMED_IN","start":"52","end":"1"},{"id":"1152922604118474805","label":"PERFORMED_IN","start":"53","end":"1"},{"id":"1152922604118474806","label":"PERFORMED_IN","start":"54","end":"1"},{"id":"1155174403932160054","label":"PERFORMED_IN","start":"54","end":"4"},{"id":"1152922604118474807","label":"PERFORMED_IN","start":"55","end":"1"},{"id":"1152922604118474808","label":"PERFORMED_IN","start":"56","end":"2"},{"id":"1155174403932160056","label":"PERFORMED_IN","start":"56","end":"4"},{"id":"1152922604118474809","label":"PERFORMED_IN","start":"57","end":"2"},{"id":"1152922604118474810","label":"PERFORMED_IN","start":"58","end":"2"},{"id":"1152922604118474811","label":"PERFORMED_IN","start":"59","end":"2"},{"id":"1152922604118474812","label":"PERFORMED_IN","start":"60","end":"2"},{"id":"1152922604118474813","label":"PERFORMED_IN","start":"61","end":"2"},{"id":"1152922604118474814","label":"PERFORMED_IN","start":"62","end":"2"},{"id":"1152922604118474815","label":"PERFORMED_IN","start":"63","end":"2"},{"id":"1155174403932160063","label":"PERFORMED_IN","start":"63","end":"3"},{"id":"1152922604118474816","label":"PERFORMED_IN","start":"64","end":"2"},{"id":"1152922604118474817","label":"PERFORMED_IN","start":"65","end":"3"},{"id":"1152922604118474818","label":"PERFORMED_IN","start":"66","end":"3"},{"id":"1152922604118474819","label":"PERFORMED_IN","start":"67","end":"3"},{"id":"1152922604118474820","label":"PERFORMED_IN","start":"68","end":"3"},{"id":"1152922604118474821","label":"PERFORMED_IN","start":"69","end":"4"},{"id":"1152922604118474822","label":"PERFORMED_IN","start":"70","end":"4"},{"id":"1152922604118474823","label":"PERFORMED_IN","start":"71","end":"4"},{"id":"1152922604118474824","label":"PERFORMED_IN","start":"72","end":"4"},{"id":"1152922604118474825","label":"PERFORMED_IN","start":"73","end":"4"},{"id":"1152922604118474826","label":"PERFORMED_IN","start":"74","end":"4"},{"id":"1152922604118474827","label":"PERFORMED_IN","start":"75","end":"5"},{"id":"1152922604118474828","label":"PERFORMED_IN","start":"76","end":"5"},{"id":"1152922604118474829","label":"PERFORMED_IN","start":"77","end":"5"},{"id":"1152922604118474830","label":"PERFORMED_IN","start":"78","end":"5"},{"id":"1152922604118474831","label":"PERFORMED_IN","start":"79","end":"5"},{"id":"1152922604118474832","label":"PERFORMED_IN","start":"80","end":"5"},{"id":"1152922604118474833","label":"PERFORMED_IN","start":"81","end":"5"},{"id":"1152923703630102610","label":"OPERATED_BOOTH_IN","start":"82","end":"0"},{"id":"1155175503443787858","label":"OPERATED_BOOTH_IN","start":"82","end":"1"},{"id":"1157427303257473106","label":"OPERATED_BOOTH_IN","start":"82","end":"2"},{"id":"1159679103071158354","label":"OPERATED_BOOTH_IN","start":"82","end":"5"},{"id":"1152923703630102611","label":"OPERATED_BOOTH_IN","start":"83","end":"0"},{"id":"1152923703630102612","label":"OPERATED_BOOTH_IN","start":"84","end":"0"},{"id":"1155175503443787860","label":"OPERATED_BOOTH_IN","start":"84","end":"1"},{"id":"1157427303257473108","label":"OPERATED_BOOTH_IN","start":"84","end":"2"},{"id":"1159679103071158356","label":"OPERATED_BOOTH_IN","start":"84","end":"3"},{"id":"1161930902884843604","label":"OPERATED_BOOTH_IN","start":"84","end":"4"},{"id":"1152923703630102613","label":"OPERATED_BOOTH_IN","start":"85","end":"2"},{"id":"1152923703630102614","label":"OPERATED_BOOTH_IN","start":"86","end":"0"},{"id":"1155175503443787862","label":"OPERATED_BOOTH_IN","start":"86","end":"1"},{"id":"1152923703630102615","label":"OPERATED_BOOTH_IN","start":"87","end":"2"},{"id":"1155175503443787863","label":"OPERATED_BOOTH_IN","start":"87","end":"3"},{"id":"1157427303257473111","label":"OPERATED_BOOTH_IN","start":"87","end":"4"},{"id":"1152923703630102616","label":"OPERATED_BOOTH_IN","start":"88","end":"0"},{"id":"1155175503443787864","label":"OPERATED_BOOTH_IN","start":"88","end":"1"},{"id":"1157427303257473112","label":"OPERATED_BOOTH_IN","start":"88","end":"2"},{"id":"1152923703630102617","label":"OPERATED_BOOTH_IN","start":"89","end":"1"},{"id":"1155175503443787865","label":"OPERATED_BOOTH_IN","start":"89","end":"3"},{"id":"1152923703630102618","label":"OPERATED_BOOTH_IN","start":"90","end":"0"},{"id":"1155175503443787866","label":"OPERATED_BOOTH_IN","start":"90","end":"1"},{"id":"1157427303257473114","label":"OPERATED_BOOTH_IN","start":"90","end":"2"},{"id":"1152923703630102619","label":"OPERATED_BOOTH_IN","start":"91","end":"0"},{"id":"1155175503443787867","label":"OPERATED_BOOTH_IN","start":"91","end":"1"},{"id":"1157427303257473115","label":"OPERATED_BOOTH_IN","start":"91","end":"3"},{"id":"1159679103071158363","label":"OPERATED_BOOTH_IN","start":"91","end":"4"},{"id":"1152923703630102620","label":"OPERATED_BOOTH_IN","start":"92","end":"0"},{"id":"1155175503443787868","label":"OPERATED_BOOTH_IN","start":"92","end":"1"},{"id":"1157427303257473116","label":"OPERATED_BOOTH_IN","start":"92","end":"3"},{"id":"1159679103071158364","label":"OPERATED_BOOTH_IN","start":"92","end":"4"},{"id":"1152923703630102621","label":"OPERATED_BOOTH_IN","start":"93","end":"0"},{"id":"1155175503443787869","label":"OPERATED_BOOTH_IN","start":"93","end":"1"},{"id":"1157427303257473117","label":"OPERATED_BOOTH_IN","start":"93","end":"3"},{"id":"1159679103071158365","label":"OPERATED_BOOTH_IN","start":"93","end":"4"},{"id":"1152923703630102622","label":"OPERATED_BOOTH_IN","start":"94","end":"0"},{"id":"1155175503443787870","label":"OPERATED_BOOTH_IN","start":"94","end":"1"},{"id":"1157427303257473118","label":"OPERATED_BOOTH_IN","start":"94","end":"2"},{"id":"1159679103071158366","label":"OPERATED_BOOTH_IN","start":"94","end":"3"},{"id":"1161930902884843614","label":"OPERATED_BOOTH_IN","start":"94","end":"4"},{"id":"1164182702698528862","label":"OPERATED_BOOTH_IN","start":"94","end":"5"},{"id":"1152923703630102623","label":"OPERATED_BOOTH_IN","start":"95","end":"1"},{"id":"1155175503443787871","label":"OPERATED_BOOTH_IN","start":"95","end":"2"},{"id":"1157427303257473119","label":"OPERATED_BOOTH_IN","start":"95","end":"5"},{"id":"1152923703630102624","label":"OPERATED_BOOTH_IN","start":"96","end":"1"},{"id":"1155175503443787872","label":"OPERATED_BOOTH_IN","start":"96","end":"3"},{"id":"1157427303257473120","label":"OPERATED_BOOTH_IN","start":"96","end":"4"},{"id":"1152923703630102625","label":"OPERATED_BOOTH_IN","start":"97","end":"0"},{"id":"1155175503443787873","label":"OPERATED_BOOTH_IN","start":"97","end":"1"},{"id":"1157427303257473121","label":"OPERATED_BOOTH_IN","start":"97","end":"2"},{"id":"1159679103071158369","label":"OPERATED_BOOTH_IN","start":"97","end":"4"},{"id":"1161930902884843617","label":"OPERATED_BOOTH_IN","start":"97","end":"5"},{"id":"1152923703630102626","label":"OPERATED_BOOTH_IN","start":"98","end":"0"},{"id":"1155175503443787874","label":"OPERATED_BOOTH_IN","start":"98","end":"4"},{"id":"1152923703630102627","label":"OPERATED_BOOTH_IN","start":"99","end":"2"},{"id":"1152923703630102628","label":"OPERATED_BOOTH_IN","start":"100","end":"0"},{"id":"1155175503443787876","label":"OPERATED_BOOTH_IN","start":"100","end":"1"},{"id":"1157427303257473124","label":"OPERATED_BOOTH_IN","start":"100","end":"3"},{"id":"1152923703630102629","label":"OPERATED_BOOTH_IN","start":"101","end":"0"},{"id":"1155175503443787877","label":"OPERATED_BOOTH_IN","start":"101","end":"1"},{"id":"1157427303257473125","label":"OPERATED_BOOTH_IN","start":"101","end":"3"},{"id":"1159679103071158373","label":"OPERATED_BOOTH_IN","start":"101","end":"4"},{"id":"1152923703630102630","label":"OPERATED_BOOTH_IN","start":"102","end":"0"},{"id":"1155175503443787878","label":"OPERATED_BOOTH_IN","start":"102","end":"1"},{"id":"1157427303257473126","label":"OPERATED_BOOTH_IN","start":"102","end":"2"},{"id":"1159679103071158374","label":"OPERATED_BOOTH_IN","start":"102","end":"3"},{"id":"1161930902884843622","label":"OPERATED_BOOTH_IN","start":"102","end":"4"},{"id":"1164182702698528870","label":"OPERATED_BOOTH_IN","start":"102","end":"5"},{"id":"1152923703630102631","label":"OPERATED_BOOTH_IN","start":"103","end":"0"},{"id":"1155175503443787879","label":"OPERATED_BOOTH_IN","start":"103","end":"1"},{"id":"1157427303257473127","label":"OPERATED_BOOTH_IN","start":"103","end":"2"},{"id":"1159679103071158375","label":"OPERATED_BOOTH_IN","start":"103","end":"3"},{"id":"1161930902884843623","label":"OPERATED_BOOTH_IN","start":"103","end":"4"},{"id":"1152923703630102632","label":"OPERATED_BOOTH_IN","start":"104","end":"1"},{"id":"1155175503443787880","label":"OPERATED_BOOTH_IN","start":"104","end":"2"},{"id":"1157427303257473128","label":"OPERATED_BOOTH_IN","start":"104","end":"4"},{"id":"1159679103071158376","label":"OPERATED_BOOTH_IN","start":"104","end":"5"},{"id":"1152923703630102633","label":"OPERATED_BOOTH_IN","start":"105","end":"0"},{"id":"1155175503443787881","label":"OPERATED_BOOTH_IN","start":"105","end":"1"},{"id":"1157427303257473129","label":"OPERATED_BOOTH_IN","start":"105","end":"2"},{"id":"1152923703630102634","label":"OPERATED_BOOTH_IN","start":"106","end":"4"},{"id":"1152923703630102635","label":"OPERATED_BOOTH_IN","start":"107","end":"4"},{"id":"1152923703630102636","label":"OPERATED_BOOTH_IN","start":"108","end":"3"},{"id":"1152923703630102637","label":"OPERATED_BOOTH_IN","start":"109","end":"4"},{"id":"1155175503443787885","label":"OPERATED_BOOTH_IN","start":"109","end":"5"},{"id":"1152923703630102638","label":"OPERATED_BOOTH_IN","start":"110","end":"3"},{"id":"1152923703630102639","label":"OPERATED_BOOTH_IN","start":"111","end":"3"},{"id":"1152923703630102640","label":"OPERATED_BOOTH_IN","start":"112","end":"3"},{"id":"1152923703630102641","label":"OPERATED_BOOTH_IN","start":"113","end":"4"},{"id":"1152923703630102642","label":"OPERATED_BOOTH_IN","start":"114","end":"3"},{"id":"1152923703630102643","label":"OPERATED_BOOTH_IN","start":"115","end":"4"},{"id":"1152923703630102644","label":"OPERATED_BOOTH_IN","start":"116","end":"4"},{"id":"1152923703630102645","label":"OPERATED_BOOTH_IN","start":"117","end":"4"},{"id":"1152923703630102646","label":"OPERATED_BOOTH_IN","start":"118","end":"4"},{"id":"1152923703630102647","label":"OPERATED_BOOTH_IN","start":"119","end":"3"},{"id":"1152923703630102648","label":"OPERATED_BOOTH_IN","start":"120","end":"3"},{"id":"1152923703630102649","label":"OPERATED_BOOTH_IN","start":"121","end":"3"},{"id":"1155175503443787897","label":"OPERATED_BOOTH_IN","start":"121","end":"4"},{"id":"1157427303257473145","label":"OPERATED_BOOTH_IN","start":"121","end":"5"},{"id":"1152923703630102650","label":"OPERATED_BOOTH_IN","start":"122","end":"5"},{"id":"1152923703630102651","label":"OPERATED_BOOTH_IN","start":"123","end":"0"},{"id":"1155175503443787899","label":"OPERATED_BOOTH_IN","start":"123","end":"1"},{"id":"1157427303257473147","label":"OPERATED_BOOTH_IN","start":"123","end":"2"},{"id":"1152923703630102652","label":"OPERATED_BOOTH_IN","start":"124","end":"0"},{"id":"1155175503443787900","label":"OPERATED_BOOTH_IN","start":"124","end":"1"},{"id":"1152923703630102653","label":"OPERATED_BOOTH_IN","start":"125","end":"0"},{"id":"1155175503443787901","label":"OPERATED_BOOTH_IN","start":"125","end":"1"},{"id":"1157427303257473149","label":"OPERATED_BOOTH_IN","start":"125","end":"2"},{"id":"1152923703630102654","label":"OPERATED_BOOTH_IN","start":"126","end":"0"},{"id":"1155175503443787902","label":"OPERATED_BOOTH_IN","start":"126","end":"1"},{"id":"1157427303257473150","label":"OPERATED_BOOTH_IN","start":"126","end":"2"},{"id":"1152923703630102655","label":"OPERATED_BOOTH_IN","start":"127","end":"0"},{"id":"1155175503443787903","label":"OPERATED_BOOTH_IN","start":"127","end":"1"},{"id":"1157427303257473151","label":"OPERATED_BOOTH_IN","start":"127","end":"2"},{"id":"1152923703630102656","label":"OPERATED_BOOTH_IN","start":"128","end":"0"},{"id":"1155175503443787904","label":"OPERATED_BOOTH_IN","start":"128","end":"1"},{"id":"1157427303257473152","label":"OPERATED_BOOTH_IN","start":"128","end":"2"},{"id":"1152923703630102657","label":"OPERATED_BOOTH_IN","start":"129","end":"0"},{"id":"1155175503443787905","label":"OPERATED_BOOTH_IN","start":"129","end":"1"},{"id":"1157427303257473153","label":"OPERATED_BOOTH_IN","start":"129","end":"2"},{"id":"1152923703630102658","label":"OPERATED_BOOTH_IN","start":"130","end":"0"},{"id":"1155175503443787906","label":"OPERATED_BOOTH_IN","start":"130","end":"1"},{"id":"1157427303257473154","label":"OPERATED_BOOTH_IN","start":"130","end":"2"},{"id":"1152923703630102659","label":"OPERATED_BOOTH_IN","start":"131","end":"1"},{"id":"1155175503443787907","label":"OPERATED_BOOTH_IN","start":"131","end":"2"},{"id":"1152923703630102660","label":"OPERATED_BOOTH_IN","start":"132","end":"1"},{"id":"1152923703630102661","label":"OPERATED_BOOTH_IN","start":"133","end":"1"},{"id":"1155175503443787909","label":"OPERATED_BOOTH_IN","start":"133","end":"2"},{"id":"1152923703630102662","label":"OPERATED_BOOTH_IN","start":"134","end":"1"},{"id":"1155175503443787910","label":"OPERATED_BOOTH_IN","start":"134","end":"2"},{"id":"1152923703630102663","label":"OPERATED_BOOTH_IN","start":"135","end":"2"},{"id":"1152923703630102664","label":"OPERATED_BOOTH_IN","start":"136","end":"2"},{"id":"1152923703630102665","label":"OPERATED_BOOTH_IN","start":"137","end":"2"},{"id":"1152923703630102666","label":"OPERATED_BOOTH_IN","start":"138","end":"2"},{"id":"1152923703630102667","label":"OPERATED_BOOTH_IN","start":"139","end":"3"},{"id":"1155175503443787915","label":"OPERATED_BOOTH_IN","start":"139","end":"4"},{"id":"1152923703630102668","label":"OPERATED_BOOTH_IN","start":"140","end":"4"},{"id":"1152923703630102669","label":"OPERATED_BOOTH_IN","start":"141","end":"5"},{"id":"1152923703630102670","label":"OPERATED_BOOTH_IN","start":"142","end":"3"},{"id":"1155175503443787918","label":"OPERATED_BOOTH_IN","start":"142","end":"4"},{"id":"1152923703630102671","label":"OPERATED_BOOTH_IN","start":"143","end":"3"},{"id":"1155175503443787919","label":"OPERATED_BOOTH_IN","start":"143","end":"4"},{"id":"1152923703630102672","label":"OPERATED_BOOTH_IN","start":"144","end":"3"},{"id":"1155175503443787920","label":"OPERATED_BOOTH_IN","start":"144","end":"4"},{"id":"1157427303257473168","label":"OPERATED_BOOTH_IN","start":"144","end":"5"},{"id":"1152923703630102673","label":"OPERATED_BOOTH_IN","start":"145","end":"3"},{"id":"1152923703630102674","label":"OPERATED_BOOTH_IN","start":"146","end":"3"},{"id":"1152923703630102675","label":"OPERATED_BOOTH_IN","start":"147","end":"3"},{"id":"1155175503443787923","label":"OPERATED_BOOTH_IN","start":"147","end":"4"},{"id":"1157427303257473171","label":"OPERATED_BOOTH_IN","start":"147","end":"5"},{"id":"1152923703630102676","label":"OPERATED_BOOTH_IN","start":"148","end":"3"},{"id":"1152923703630102677","label":"OPERATED_BOOTH_IN","start":"149","end":"3"}]}
+    };
+
+    /* ==========================================================================
+       유틸리티 함수
+       ========================================================================== */
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function showToast(message) {
+      const el = document.getElementById("toast-msg");
+      if (!el) return;
+      el.textContent = message;
+      el.classList.add("is-visible");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        el.classList.remove("is-visible");
+      }, 2200);
+    }
+
+    /* ==========================================================================
+       ① 자기소개 섹션 렌더링
+       ========================================================================== */
+    function renderAboutSection() {
+      const p = PORTFOLIO_DATA.profile;
+
+      document.getElementById("hero-kicker").textContent = p.kicker;
+      document.getElementById("about-heading").innerHTML =
+        `<span class="editorial-italic">${escapeHtml(p.headlinePrefix)}</span><br>${escapeHtml(p.headlineMain)}`;
+      document.getElementById("hero-lead").textContent = p.bio;
+
+      // Hero CTA
+      const actionsEl = document.getElementById("hero-actions");
+      actionsEl.innerHTML = `
+        <a href="${escapeHtml(p.wikiUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+          자기소개 위키 원문 보기 ↗
+        </a>
+        <a href="#projects" class="btn btn-secondary">
+          프로젝트 살펴보기
+        </a>
+        <a href="#explorer" class="btn btn-ghost">
+          데이터 탐색 열기
+        </a>
+      `;
+
+      // 프로필 이미지 및 안전한 폴백 처리
+      const img = document.getElementById("profile-avatar-img");
+      const fallback = document.getElementById("profile-avatar-fallback");
+      let triedFallback = false;
+
+      img.onerror = function () {
+        if (!triedFallback && p.avatarFallback && img.src !== p.avatarFallback) {
+          triedFallback = true;
+          img.src = p.avatarFallback;
+        } else {
+          img.style.display = "none";
+          fallback.classList.add("is-visible");
+        }
+      };
+      img.src = p.avatar || p.avatarFallback;
+
+      document.getElementById("media-caption-left").textContent = `${p.name} (${p.englishName})`;
+      document.getElementById("media-caption-right").textContent = p.englishMotto;
+
+      // 4열 요약 스트립
+      document.getElementById("summary-strip").innerHTML = PORTFOLIO_DATA.summaryMetrics
+        .map(item => `
+          <div class="summary-cell">
+            <div class="summary-label">${escapeHtml(item.label)}</div>
+            <div class="summary-value">${escapeHtml(item.value)}</div>
+          </div>
+        `).join("");
+
+      // 학력/활동 타임라인
+      document.getElementById("timeline-list").innerHTML = PORTFOLIO_DATA.timeline
+        .map(item => `
+          <li class="timeline-item">
+            <div class="timeline-period tabular-nums">${escapeHtml(item.period)}</div>
+            <div>
+              <div class="timeline-title">${escapeHtml(item.title)}</div>
+              <p class="timeline-desc">${escapeHtml(item.description)}</p>
+            </div>
+          </li>
+        `).join("");
+
+      // 선호 및 관심사 키-밸류
+      document.getElementById("preferences-grid").innerHTML = PORTFOLIO_DATA.preferences
+        .map(item => `
+          <div class="kv-item">
+            <span class="kv-key">${escapeHtml(item.key)}</span>
+            <span class="kv-val">${escapeHtml(item.value)}</span>
+          </div>
+        `).join("");
+
+      // 연락처 및 링크
+      const activeContacts = PORTFOLIO_DATA.contacts.filter(c => c.enabled);
+      const contactStack = document.getElementById("contact-stack");
+      contactStack.innerHTML = activeContacts.map((c, idx) => `
+        <div class="contact-row">
+          <div class="contact-info">
+            <div class="contact-type">${escapeHtml(c.type)}</div>
+            <div class="contact-value">${escapeHtml(c.label)}</div>
+          </div>
+          <div class="contact-actions">
+            ${c.copyText ? `<button type="button" class="mini-btn" data-copy="${escapeHtml(c.copyText)}">복사</button>` : ""}
+            ${c.url ? `<a href="${escapeHtml(c.url)}" ${c.url.startsWith("http") ? 'target="_blank" rel="noopener noreferrer"' : ""} class="mini-btn">${escapeHtml(c.actionLabel || "열기")} ↗</a>` : ""}
+          </div>
+        </div>
+      `).join("");
+
+      contactStack.querySelectorAll("[data-copy]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const text = btn.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(text);
+            showToast(`복사되었습니다: ${text}`);
+          } catch {
+            showToast(`이메일 주소: ${text}`);
+          }
+        });
+      });
+
+      document.getElementById("footer-copy").textContent = `© ${new Date().getFullYear()} ${p.name} (${p.englishName})`;
+    }
+
+    /* ==========================================================================
+       ② 프로젝트 섹션 렌더링 및 모달
+       ========================================================================== */
+    let activeProjectCategory = "전체";
+
+    function renderProjectsSection() {
+      const categories = ["전체", ...new Set(PORTFOLIO_DATA.projects.map(p => p.category))];
+      const filterBar = document.getElementById("project-filters");
+
+      filterBar.innerHTML = categories.map(cat => `
+        <button
+          type="button"
+          class="filter-tab ${cat === activeProjectCategory ? "is-active" : ""}"
+          data-category="${escapeHtml(cat)}"
+          role="tab"
+          aria-selected="${cat === activeProjectCategory}"
+        >${escapeHtml(cat)}</button>
+      `).join("");
+
+      filterBar.querySelectorAll(".filter-tab").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeProjectCategory = btn.getAttribute("data-category");
+          renderProjectsSection();
+        });
+      });
+
+      const list = activeProjectCategory === "전체"
+        ? PORTFOLIO_DATA.projects
+        : PORTFOLIO_DATA.projects.filter(p => p.category === activeProjectCategory);
+
+      const grid = document.getElementById("projects-grid");
+      grid.innerHTML = list.map(proj => `
+        <article class="project-card">
+          <div>
+            <div class="project-meta">
+              <span>${escapeHtml(proj.category)}</span>
+              <span aria-hidden="true">·</span>
+              <span class="tabular-nums">${escapeHtml(proj.period)}</span>
+              <span aria-hidden="true">·</span>
+              <span>${escapeHtml(proj.role)}</span>
+            </div>
+            <h3 class="project-title">${escapeHtml(proj.title)}</h3>
+            <p class="project-summary">${escapeHtml(proj.summary)}</p>
+          </div>
+          <div class="project-footer">
+            <span class="project-stack">${escapeHtml(proj.stack)}</span>
+            <div class="project-card-actions">
+              ${proj.exploreAction ? `<button type="button" class="mini-btn" data-jump-explorer="${escapeHtml(proj.exploreAction.festivalFilter || "all")}">${escapeHtml(proj.exploreAction.label)}</button>` : ""}
+              <button type="button" class="mini-btn" data-open-project="${escapeHtml(proj.id)}">상세 보기</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+
+      grid.querySelectorAll("[data-open-project]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          openProjectModal(btn.getAttribute("data-open-project"));
+        });
+      });
+
+      grid.querySelectorAll("[data-jump-explorer]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const fest = btn.getAttribute("data-jump-explorer") || "all";
+          graphState.activeLabel = "전체";
+          graphState.activeFestival = fest;
+          renderFilterBars();
+          applyGraphFilter();
+          const explorerEl = document.getElementById("explorer");
+          if (explorerEl) explorerEl.scrollIntoView({ behavior: "smooth" });
+        });
+      });
+    }
+
+    function openProjectModal(projectId) {
+      const proj = PORTFOLIO_DATA.projects.find(p => p.id === projectId);
+      if (!proj) return;
+
+      document.getElementById("modal-meta").innerHTML = `
+        <span>${escapeHtml(proj.category)}</span>
+        <span aria-hidden="true">·</span>
+        <span class="tabular-nums">${escapeHtml(proj.period)}</span>
+        <span aria-hidden="true">·</span>
+        <span>${escapeHtml(proj.role)}</span>
+      `;
+      document.getElementById("modal-title").textContent = proj.title;
+      document.getElementById("modal-desc").textContent = proj.summary;
+      document.getElementById("modal-highlights").innerHTML = (proj.highlights || [])
+        .map(h => `<li>${escapeHtml(h)}</li>`)
+        .join("");
+
+      const modalActions = document.getElementById("modal-actions");
+      modalActions.innerHTML = "";
+      if (proj.exploreAction) {
+        const jumpBtn = document.createElement("button");
+        jumpBtn.type = "button";
+        jumpBtn.className = "btn btn-primary";
+        jumpBtn.textContent = proj.exploreAction.label;
+        jumpBtn.addEventListener("click", () => {
+          closeProjectModal();
+          graphState.activeLabel = "전체";
+          graphState.activeFestival = proj.exploreAction.festivalFilter || "all";
+          renderFilterBars();
+          applyGraphFilter();
+          document.getElementById("explorer")?.scrollIntoView({ behavior: "smooth" });
+        });
+        modalActions.appendChild(jumpBtn);
+      }
+      if (proj.externalUrl) {
+        const extLink = document.createElement("a");
+        extLink.href = proj.externalUrl;
+        extLink.target = "_blank";
+        extLink.rel = "noopener noreferrer";
+        extLink.className = "btn btn-secondary";
+        extLink.textContent = "관련 문서 열기 ↗";
+        modalActions.appendChild(extLink);
+      }
+
+      document.getElementById("project-modal").classList.add("is-open");
+    }
+
+    function closeProjectModal() {
+      document.getElementById("project-modal").classList.remove("is-open");
+    }
+
+    /* ==========================================================================
+       ③ 데이터 탐색 (Neo4j + Vis.js Network 인터랙티브 시각화)
+       ========================================================================== */
+    const LABEL_STYLE = {
+      "축제": {
+        color: { background: "#1d4ed8", border: "#1e3a8a", highlight: { background: "#2563eb", border: "#172554" } },
+        font: { color: "#ffffff", size: 15, face: "Noto Sans KR" },
+        shape: "box",
+        margin: 10,
+        size: 26
+      },
+      "일자": {
+        color: { background: "#dbeafe", border: "#3b82f6", highlight: { background: "#bfdbfe", border: "#1d4ed8" } },
+        font: { color: "#1e3a8a", size: 13, face: "Noto Sans KR" },
+        shape: "ellipse",
+        size: 20
+      },
+      "연예인": {
+        color: { background: "#fef3c7", border: "#b45309", highlight: { background: "#fde68a", border: "#92400e" } },
+        font: { color: "#1f2937", size: 12, face: "Noto Sans KR" },
+        shape: "dot",
+        size: 15
+      },
+      "학생참여주체": {
+        color: { background: "#ccfbf1", border: "#0f766e", highlight: { background: "#99f6e4", border: "#115e59" } },
+        font: { color: "#1f2937", size: 11, face: "Noto Sans KR" },
+        shape: "dot",
+        size: 13
+      },
+      "조직": {
+        color: { background: "#e2e8f0", border: "#334155", highlight: { background: "#cbd5e1", border: "#0f172a" } },
+        font: { color: "#1e293b", size: 12, face: "Noto Sans KR" },
+        shape: "diamond",
+        size: 14
+      }
+    };
+
+    const REL_LABELS_KO = {
+      "HAS_DAY": "일자 포함 (HAS_DAY)",
+      "PERFORMED_IN": "공연 참여 (PERFORMED_IN)",
+      "OPERATED_BOOTH_IN": "부스 운영 (OPERATED_BOOTH_IN)"
+    };
+
+    const PROP_KEYS_KO = {
+      name: "이름 (name)",
+      id: "식별 ID (id)",
+      class: "분류 (class)",
+      year: "연도 (year)",
+      genre: "장르 (genre)",
+      orgType: "단체 유형 (orgType)",
+      participationType: "참여 형태 (participationType)",
+      industry: "산업군 (industry)"
+    };
+
+    const graphState = {
+      network: null,
+      nodesDS: null,
+      edgesDS: null,
+      activeLabel: "전체",
+      activeFestival: "all", // "all" | "6" (KUdyssey) | "7" (Kulimax)
+      keepStructure: true,
+      physicsEnabled: true,
+      selectedNodeId: null,
+      searchQuery: "",
+      nodeMap: new Map(),
+      adjMap: new Map()
+    };
+
+    function buildGraphIndex() {
+      const { nodes, relationships } = PORTFOLIO_DATA.neo4jGraph;
+      graphState.nodeMap.clear();
+      graphState.adjMap.clear();
+
+      nodes.forEach(n => {
+        graphState.nodeMap.set(n.id, n);
+        graphState.adjMap.set(n.id, []);
+      });
+
+      relationships.forEach(r => {
+        if (graphState.adjMap.has(r.start)) {
+          graphState.adjMap.get(r.start).push({ rel: r, neighborId: r.end, direction: "out" });
+        }
+        if (graphState.adjMap.has(r.end)) {
+          graphState.adjMap.get(r.end).push({ rel: r, neighborId: r.start, direction: "in" });
+        }
+      });
+    }
+
+    function getFestivalDayIds(festivalId) {
+      if (festivalId === "all") return null;
+      const dayIds = new Set([festivalId]);
+      const adj = graphState.adjMap.get(festivalId) || [];
+      adj.forEach(item => {
+        if (item.rel.label === "HAS_DAY") dayIds.add(item.neighborId);
+      });
+      return dayIds;
+    }
+
+    function computeFilteredGraph() {
+      const { nodes, relationships } = PORTFOLIO_DATA.neo4jGraph;
+      const festScopeIds = getFestivalDayIds(graphState.activeFestival);
+
+      // 1단계: 축제 연도 필터 적용 시 연결된 노드 집합 산출
+      let festivalAllowed = new Set(nodes.map(n => n.id));
+      if (festScopeIds) {
+        festivalAllowed = new Set(festScopeIds);
+        relationships.forEach(r => {
+          if (festScopeIds.has(r.end)) festivalAllowed.add(r.start);
+          if (festScopeIds.has(r.start)) festivalAllowed.add(r.end);
+        });
+      }
+
+      // 2단계: 라벨 필터 적용
+      let visibleIds = new Set();
+      if (graphState.activeLabel === "전체") {
+        visibleIds = new Set(festivalAllowed);
+      } else {
+        nodes.forEach(n => {
+          if (festivalAllowed.has(n.id) && n.labels.includes(graphState.activeLabel)) {
+            visibleIds.add(n.id);
+          }
+        });
+        if (graphState.keepStructure) {
+          const extra = new Set();
+          relationships.forEach(r => {
+            if (visibleIds.has(r.start) && festivalAllowed.has(r.end)) extra.add(r.end);
+            if (visibleIds.has(r.end) && festivalAllowed.has(r.start)) extra.add(r.start);
+          });
+          // 일자 -> 축제 노드도 함께 연결
+          nodes.forEach(n => {
+            if (extra.has(n.id) && n.labels.includes("일자")) {
+              (graphState.adjMap.get(n.id) || []).forEach(adj => {
+                if (adj.rel.label === "HAS_DAY" && festivalAllowed.has(adj.neighborId)) {
+                  extra.add(adj.neighborId);
+                }
+              });
+            }
+          });
+          extra.forEach(id => visibleIds.add(id));
+        }
+      }
+
+      const filteredNodes = nodes.filter(n => visibleIds.has(n.id));
+      const filteredEdges = relationships.filter(r => visibleIds.has(r.start) && visibleIds.has(r.end));
+
+      return { filteredNodes, filteredEdges };
+    }
+
+    function toVisNode(n) {
+      const labelType = n.labels[0] || "학생참여주체";
+      const style = LABEL_STYLE[labelType] || LABEL_STYLE["학생참여주체"];
+      const name = n.properties.name || n.id;
+      const shortName = name.length > 14 ? name.slice(0, 13) + "…" : name;
+
+      return {
+        id: n.id,
+        label: shortName,
+        title: `${name} (${labelType})`,
+        shape: style.shape,
+        size: style.size,
+        color: style.color,
+        font: style.font,
+        margin: style.margin || 6,
+        borderWidth: 1.5
+      };
+    }
+
+    function toVisEdge(r) {
+      return {
+        id: r.id,
+        from: r.start,
+        to: r.end,
+        label: "",
+        title: r.label,
+        arrows: { to: { enabled: true, scaleFactor: 0.45 } },
+        color: { color: "#cbd5e1", highlight: "#1d4ed8", hover: "#64748b" },
+        width: 1.1,
+        smooth: { type: "continuous" }
+      };
+    }
+
+    function renderFilterBars() {
+      const { nodes } = PORTFOLIO_DATA.neo4jGraph;
+      const counts = { "전체": nodes.length, "축제": 0, "일자": 0, "연예인": 0, "학생참여주체": 0, "조직": 0 };
+      nodes.forEach(n => {
+        const l = n.labels[0];
+        if (counts[l] !== undefined) counts[l] += 1;
+      });
+
+      const labelBar = document.getElementById("label-filter-bar");
+      labelBar.innerHTML = Object.entries(counts).map(([label, count]) => `
+        <button
+          type="button"
+          class="filter-tab tabular-nums ${graphState.activeLabel === label ? "is-active" : ""}"
+          data-label-filter="${escapeHtml(label)}"
+        >${escapeHtml(label)} (${count})</button>
+      `).join("");
+
+      labelBar.querySelectorAll("[data-label-filter]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          graphState.activeLabel = btn.getAttribute("data-label-filter");
+          renderFilterBars();
+          applyGraphFilter();
+        });
+      });
+
+      const festOptions = [
+        { id: "all", label: "전체 축제" },
+        { id: "6", label: "2025 KUdyssey" },
+        { id: "7", label: "2026 Kulimax" }
+      ];
+      const festBar = document.getElementById("festival-filter-bar");
+      festBar.innerHTML = festOptions.map(opt => `
+        <button
+          type="button"
+          class="filter-tab ${graphState.activeFestival === opt.id ? "is-active" : ""}"
+          data-fest-filter="${opt.id}"
+        >${escapeHtml(opt.label)}</button>
+      `).join("");
+
+      festBar.querySelectorAll("[data-fest-filter]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          graphState.activeFestival = btn.getAttribute("data-fest-filter");
+          renderFilterBars();
+          applyGraphFilter();
+        });
+      });
+    }
+
+    function applyGraphFilter() {
+      if (!graphState.nodesDS || !graphState.edgesDS) return;
+      const { filteredNodes, filteredEdges } = computeFilteredGraph();
+
+      graphState.nodesDS.clear();
+      graphState.edgesDS.clear();
+      graphState.nodesDS.add(filteredNodes.map(toVisNode));
+      graphState.edgesDS.add(filteredEdges.map(toVisEdge));
+
+      document.getElementById("graph-visible-stats").textContent =
+        `표시 중: 노드 ${filteredNodes.length} · 관계 ${filteredEdges.length}`;
+
+      if (graphState.selectedNodeId && !filteredNodes.some(n => n.id === graphState.selectedNodeId)) {
+        graphState.selectedNodeId = null;
+        renderInspector(null);
+      }
+
+      if (graphState.network) {
+        setTimeout(() => graphState.network.fit({ animation: { duration: 350, easingFunction: "easeOutQuad" } }), 120);
+      }
+    }
+
+    function focusNodeById(nodeId) {
+      const node = graphState.nodeMap.get(nodeId);
+      if (!node) return;
+
+      // 현재 필터에 노드가 없으면 전체 보기로 자동 전환 후 포커스
+      if (graphState.nodesDS && !graphState.nodesDS.get(nodeId)) {
+        graphState.activeLabel = "전체";
+        graphState.activeFestival = "all";
+        renderFilterBars();
+        applyGraphFilter();
+      }
+
+      graphState.selectedNodeId = nodeId;
+      renderInspector(node);
+
+      if (graphState.network) {
+        graphState.network.selectNodes([nodeId]);
+        graphState.network.focus(nodeId, {
+          scale: 1.25,
+          animation: { duration: 420, easingFunction: "easeInOutQuad" }
+        });
+      }
+    }
+
+    function renderInspector(node) {
+      const panel = document.getElementById("node-inspector");
+      if (!node) {
+        const { nodes, relationships } = PORTFOLIO_DATA.neo4jGraph;
+        const quickSamples = [
+          { id: "6", label: "KUdyssey (2025)" },
+          { id: "7", label: "Kulimax (2026)" },
+          { id: "23", label: "IVE" },
+          { id: "17", label: "투모로우바이투게더" },
+          { id: "82", label: "고려대학교고양이쉼터" },
+          { id: "128", label: "갤럭시 캠퍼스 스튜디오" }
+        ];
+
+        panel.innerHTML = `
+          <div class="inspector-head">
+            <div class="inspector-kicker">노드 정보 패널</div>
+            <h3 class="inspector-title">노드를 선택해 속성을 확인하세요</h3>
+            <p class="inspector-sub">그래프의 노드를 클릭하거나 검색하면 상세 속성과 연결 관계가 표시됩니다.</p>
+          </div>
+
+          <table class="prop-table tabular-nums">
+            <tr><th>전체 노드</th><td>${nodes.length}개 (5개 클래스)</td></tr>
+            <tr><th>전체 관계</th><td>${relationships.length}개 (3개 유형)</td></tr>
+            <tr><th>포함 축제</th><td>2025 KUdyssey · 2026 Kulimax</td></tr>
+          </table>
+
+          <div>
+            <h4 class="neighbor-section-title">주요 탐색 시작점</h4>
+            <div class="quick-picks">
+              ${quickSamples.map(s => `
+                <button type="button" class="quick-pick-btn" data-focus-node="${s.id}">${escapeHtml(s.label)}</button>
+              `).join("")}
+            </div>
+          </div>
+        `;
+
+        panel.querySelectorAll("[data-focus-node]").forEach(btn => {
+          btn.addEventListener("click", () => focusNodeById(btn.getAttribute("data-focus-node")));
+        });
+        return;
+      }
+
+      const labelType = node.labels.join(", ");
+      const propRows = Object.entries(node.properties || {}).map(([k, v]) => `
+        <tr>
+          <th>${escapeHtml(PROP_KEYS_KO[k] || k)}</th>
+          <td>${escapeHtml(v)}</td>
+        </tr>
+      `).join("");
+
+      const connections = graphState.adjMap.get(node.id) || [];
+
+      panel.innerHTML = `
+        <div class="inspector-head">
+          <div class="inspector-kicker">${escapeHtml(labelType)}</div>
+          <h3 class="inspector-title">${escapeHtml(node.properties.name || node.id)}</h3>
+          <p class="inspector-sub tabular-nums">Neo4j ID #${escapeHtml(node.id)} · Code ${escapeHtml(node.properties.id || "-")}</p>
+        </div>
+
+        <div>
+          <h4 class="neighbor-section-title">노드 속성 (Properties)</h4>
+          <table class="prop-table">
+            ${propRows}
+          </table>
+        </div>
+
+        <div>
+          <h4 class="neighbor-section-title tabular-nums">연결된 관계 및 이웃 (${connections.length})</h4>
+          <div class="neighbor-list">
+            ${connections.length === 0
+              ? '<p style="font-size:0.86rem; color:var(--ink-muted); margin:0;">연결된 노드가 없습니다.</p>'
+              : connections.map(conn => {
+                  const nb = graphState.nodeMap.get(conn.neighborId);
+                  if (!nb) return "";
+                  const dirSymbol = conn.direction === "out" ? "→" : "←";
+                  return `
+                    <button type="button" class="neighbor-btn" data-focus-node="${escapeHtml(nb.id)}">
+                      <span>${escapeHtml(nb.properties.name || nb.id)} <span style="color:var(--ink-muted); font-size:0.78rem;">(${escapeHtml(nb.labels[0])})</span></span>
+                      <span class="neighbor-rel">${dirSymbol} ${escapeHtml(conn.rel.label)}</span>
+                    </button>
+                  `;
+                }).join("")
+            }
+          </div>
+        </div>
+      `;
+
+      panel.querySelectorAll("[data-focus-node]").forEach(btn => {
+        btn.addEventListener("click", () => focusNodeById(btn.getAttribute("data-focus-node")));
+      });
+    }
+
+    function setupSearch() {
+      const input = document.getElementById("graph-search-input");
+      const clearBtn = document.getElementById("graph-search-clear");
+      const dropdown = document.getElementById("graph-search-dropdown");
+
+      function updateDropdown(query) {
+        const q = query.trim().toLowerCase();
+        clearBtn.classList.toggle("is-visible", q.length > 0);
+        if (!q) {
+          dropdown.classList.remove("is-open");
+          dropdown.innerHTML = "";
+          return;
+        }
+
+        const matches = PORTFOLIO_DATA.neo4jGraph.nodes.filter(n => {
+          const text = [
+            n.properties.name,
+            n.properties.id,
+            n.properties.genre,
+            n.properties.orgType,
+            n.properties.industry,
+            n.properties.participationType,
+            n.labels.join(" ")
+          ].filter(Boolean).join(" ").toLowerCase();
+          return text.includes(q);
+        }).slice(0, 15);
+
+        if (matches.length === 0) {
+          dropdown.innerHTML = `<div class="search-result-item" style="cursor:default; color:var(--ink-muted);">일치하는 노드가 없습니다.</div>`;
+        } else {
+          dropdown.innerHTML = matches.map(n => {
+            const sub = n.properties.genre || n.properties.industry || n.properties.orgType || n.labels[0];
+            return `
+              <button type="button" class="search-result-item" data-search-pick="${escapeHtml(n.id)}">
+                <span>${escapeHtml(n.properties.name)}</span>
+                <span class="search-result-meta">${escapeHtml(n.labels[0])} · ${escapeHtml(sub)}</span>
+              </button>
+            `;
+          }).join("");
+
+          dropdown.querySelectorAll("[data-search-pick]").forEach(btn => {
+            btn.addEventListener("click", () => {
+              const id = btn.getAttribute("data-search-pick");
+              dropdown.classList.remove("is-open");
+              focusNodeById(id);
+            });
+          });
+        }
+        dropdown.classList.add("is-open");
+      }
+
+      input.addEventListener("input", e => updateDropdown(e.target.value));
+      input.addEventListener("focus", e => {
+        if (e.target.value.trim()) updateDropdown(e.target.value);
+      });
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          const first = dropdown.querySelector("[data-search-pick]");
+          if (first) {
+            e.preventDefault();
+            dropdown.classList.remove("is-open");
+            focusNodeById(first.getAttribute("data-search-pick"));
+          }
+        } else if (e.key === "Escape") {
+          dropdown.classList.remove("is-open");
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        input.value = "";
+        updateDropdown("");
+        input.focus();
+      });
+
+      document.addEventListener("click", e => {
+        if (!e.target.closest(".search-box-wrap")) {
+          dropdown.classList.remove("is-open");
+        }
+      });
+    }
+
+    function initVisNetwork() {
+      if (graphState.network) return;
+      const container = document.getElementById("neo4j-network");
+      const fallbackNotice = document.getElementById("graph-fallback-notice");
+
+      if (typeof window.vis === "undefined") {
+        if (!document.getElementById("vis-fallback-script")) {
+          const script = document.createElement("script");
+          script.id = "vis-fallback-script";
+          script.src = "https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js";
+          script.onload = () => initVisNetwork();
+          script.onerror = () => fallbackNotice.classList.add("is-visible");
+          document.head.appendChild(script);
+        }
+        return;
+      }
+
+      fallbackNotice.classList.remove("is-visible");
+
+      const { filteredNodes, filteredEdges } = computeFilteredGraph();
+      graphState.nodesDS = new vis.DataSet(filteredNodes.map(toVisNode));
+      graphState.edgesDS = new vis.DataSet(filteredEdges.map(toVisEdge));
+
+      const options = {
+        autoResize: false,
+        width: "100%",
+        height: "100%",
+        interaction: {
+          hover: true,
+          tooltipDelay: 180,
+          navigationButtons: false,
+          keyboard: true,
+          zoomView: true,
+          dragView: true,
+          dragNodes: true
+        },
+        physics: {
+          enabled: true,
+          solver: "forceAtlas2Based",
+          forceAtlas2Based: {
+            gravitationalConstant: -46,
+            centralGravity: 0.008,
+            springLength: 115,
+            springConstant: 0.06,
+            damping: 0.45,
+            avoidOverlap: 0.45
+          },
+          stabilization: {
+            iterations: 160,
+            updateInterval: 25
+          }
+        },
+        edges: {
+          font: { size: 10, color: "#64748b", align: "middle" }
+        }
+      };
+
+      graphState.network = new vis.Network(
+        container,
+        { nodes: graphState.nodesDS, edges: graphState.edgesDS },
+        options
+      );
+
+      // ResizeObserver 루프를 유발하지 않도록 크기 변경 시에만 rAF 지연 리사이즈 적용
+      let resizeRaf = null;
+      let lastW = container.clientWidth;
+      let lastH = container.clientHeight;
+      const syncNetworkSize = () => {
+        if (resizeRaf) cancelAnimationFrame(resizeRaf);
+        resizeRaf = requestAnimationFrame(() => {
+          if (!graphState.network) return;
+          const w = container.clientWidth;
+          const h = container.clientHeight;
+          if (w > 0 && h > 0 && (w !== lastW || h !== lastH)) {
+            lastW = w;
+            lastH = h;
+            graphState.network.setSize(w + "px", h + "px");
+            graphState.network.redraw();
+          }
+        });
+      };
+      if (typeof ResizeObserver !== "undefined") {
+        const ro = new ResizeObserver(() => syncNetworkSize());
+        ro.observe(container);
+      } else {
+        window.addEventListener("resize", syncNetworkSize);
+      }
+
+      graphState.network.on("click", params => {
+        if (params.nodes.length > 0) {
+          const id = String(params.nodes[0]);
+          graphState.selectedNodeId = id;
+          renderInspector(graphState.nodeMap.get(id) || null);
+        } else {
+          graphState.selectedNodeId = null;
+          renderInspector(null);
+        }
+      });
+
+      graphState.network.once("stabilizationIterationsDone", () => {
+        graphState.network.fit({ animation: { duration: 400, easingFunction: "easeOutQuad" } });
+      });
+
+      // 도구 모음 버튼 바인딩
+      document.getElementById("keep-structure-toggle").addEventListener("change", e => {
+        graphState.keepStructure = e.target.checked;
+        applyGraphFilter();
+      });
+
+      document.getElementById("btn-fit-graph").addEventListener("click", () => {
+        graphState.network?.fit({ animation: { duration: 350, easingFunction: "easeOutQuad" } });
+      });
+
+      const physicsBtn = document.getElementById("btn-toggle-physics");
+      physicsBtn.addEventListener("click", () => {
+        graphState.physicsEnabled = !graphState.physicsEnabled;
+        graphState.network?.setOptions({ physics: { enabled: graphState.physicsEnabled } });
+        physicsBtn.textContent = graphState.physicsEnabled ? "물리엔진 일시정지" : "물리엔진 재개";
+      });
+
+      document.getElementById("btn-reset-graph").addEventListener("click", () => {
+        graphState.activeLabel = "전체";
+        graphState.activeFestival = "all";
+        graphState.selectedNodeId = null;
+        document.getElementById("graph-search-input").value = "";
+        document.getElementById("graph-search-clear").classList.remove("is-visible");
+        renderFilterBars();
+        applyGraphFilter();
+        renderInspector(null);
+      });
+
+      document.getElementById("btn-zoom-in").addEventListener("click", () => {
+        if (!graphState.network) return;
+        const scale = graphState.network.getScale();
+        graphState.network.moveTo({ scale: Math.min(scale * 1.28, 3.0), animation: { duration: 200 } });
+      });
+
+      document.getElementById("btn-zoom-out").addEventListener("click", () => {
+        if (!graphState.network) return;
+        const scale = graphState.network.getScale();
+        graphState.network.moveTo({ scale: Math.max(scale * 0.78, 0.2), animation: { duration: 200 } });
+      });
+    }
+
+    /* ==========================================================================
+       상단 내비게이션 활성 상태 동기화 (Scroll Spy)
+       ========================================================================== */
+    function setupScrollSpy() {
+      const navLinks = document.querySelectorAll(".nav-link[data-nav]");
+      const sections = ["about", "projects", "explorer"]
+        .map(id => document.getElementById(id))
+        .filter(Boolean);
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            navLinks.forEach(link => {
+              link.classList.toggle("is-active", link.getAttribute("data-nav") === id);
+            });
+          }
+        });
+      }, { rootMargin: "-30% 0px -55% 0px" });
+
+      sections.forEach(sec => observer.observe(sec));
+
+      document.getElementById("home-logo-btn").addEventListener("click", e => {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+
+    /* ==========================================================================
+       초기화 실행
+       ========================================================================== */
+    document.addEventListener("DOMContentLoaded", () => {
+      renderAboutSection();
+      renderProjectsSection();
+
+      buildGraphIndex();
+      renderFilterBars();
+      renderInspector(null);
+      setupSearch();
+      setupScrollSpy();
+
+      // 모달 닫기 핸들러
+      document.getElementById("modal-close-btn").addEventListener("click", closeProjectModal);
+      document.getElementById("project-modal").addEventListener("click", e => {
+        if (e.target.id === "project-modal") closeProjectModal();
+      });
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape") closeProjectModal();
+      });
+
+      // Vis.js 스크립트 로드 완료 후 네트워크 초기화
+      if (typeof window.vis !== "undefined") {
+        initVisNetwork();
+      } else {
+        window.addEventListener("load", initVisNetwork);
+      }
+    });
+  </script>
+</body>
+</html>
